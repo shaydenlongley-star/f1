@@ -1,0 +1,589 @@
+/* ============================================
+   F1 2026 DASHBOARD — style.css
+   ============================================ */
+
+/* === RESET === */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* === BASE === */
+:root {
+  --red: #e8002d;
+  --bg: #0a0a0f;
+  --card: rgba(255, 255, 255, 0.04);
+  --border: rgba(255, 255, 255, 0.08);
+  --text-2: rgba(255, 255, 255, 0.55);
+  --text-3: rgba(255, 255, 255, 0.3);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: var(--bg);
+  background-image:
+    repeating-linear-gradient(45deg,  rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 6px),
+    repeating-linear-gradient(-45deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 6px);
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+}
+
+/* === HEADER === */
+header {
+  background: linear-gradient(135deg, #1e0008 0%, #2d000f 50%, #1a0006 100%);
+  border-bottom: 2px solid var(--red);
+  padding: 24px 0;
+}
+
+.header-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.f1-wordmark {
+  font-family: 'Oswald', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--red);
+  line-height: 1;
+  filter: drop-shadow(0 0 16px rgba(232, 0, 45, 0.6));
+  letter-spacing: -1px;
+}
+
+header h1 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.subtitle {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.45);
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+/* === MAIN === */
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 36px 20px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+section h2 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+/* === SKELETON === */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+.skeleton-hero, .skeleton-card, .skeleton-row {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.04) 75%);
+  background-size: 1200px 100%;
+  animation: shimmer 1.6s infinite linear;
+  border-radius: 8px;
+}
+
+.skeleton-hero   { height: 180px; border-radius: 12px; }
+.skeleton-card   { height: 72px; margin-bottom: 6px; }
+.skeleton-table  { display: flex; flex-direction: column; gap: 6px; }
+.skeleton-row    { height: 46px; }
+.skeleton-header { height: 32px; opacity: 0.5; }
+
+/* === NEXT RACE HERO === */
+.next-race-card {
+  background: linear-gradient(135deg,
+    rgba(232,0,45,0.14) 0%,
+    rgba(18,0,6,0.95) 55%,
+    rgba(10,10,15,0.9) 100%);
+  border: 1px solid rgba(232,0,45,0.25);
+  border-top: 2px solid var(--red);
+  border-radius: 12px;
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.next-race-card::after {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 240px; height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232,0,45,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.next-race-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 12px;
+}
+
+.next-race-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #ffffff;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+
+.next-race-circuit {
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 4px;
+  font-family: 'Inter', sans-serif;
+}
+
+.next-race-date {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 28px;
+  font-family: 'Inter', sans-serif;
+}
+
+.countdown {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cd-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 52px;
+}
+
+.cd-num {
+  font-family: 'Oswald', sans-serif;
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #ffffff;
+  text-shadow: 0 0 24px rgba(232,0,45,0.4);
+}
+
+.cd-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  margin-top: 4px;
+}
+
+.cd-sep {
+  font-family: 'Oswald', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: rgba(232,0,45,0.45);
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+/* === LAST RACE === */
+.last-race-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.race-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+}
+
+.race-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.race-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-2);
+  margin-top: 4px;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Podium */
+.podium {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: end;
+  padding: 24px 12px 0;
+  gap: 6px;
+}
+
+.podium-place {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.podium-info {
+  padding: 0 6px 10px;
+}
+
+.podium-driver {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+}
+
+.podium-team {
+  font-size: 0.7rem;
+  font-family: 'Inter', sans-serif;
+  margin-top: 3px;
+  font-weight: 500;
+}
+
+.podium-time {
+  font-size: 0.68rem;
+  color: var(--text-3);
+  font-family: 'Inter', sans-serif;
+  margin-top: 3px;
+}
+
+.podium-block {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px 6px 0 0;
+}
+
+.podium-pos {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.5);
+}
+
+.podium-place.p1 .podium-block {
+  height: 90px;
+  background: linear-gradient(to top, var(--team-color, #666) 0%, color-mix(in srgb, var(--team-color, #666) 25%, transparent) 100%);
+}
+
+.podium-place.p2 .podium-block {
+  height: 62px;
+  background: linear-gradient(to top, var(--team-color, #666) 0%, color-mix(in srgb, var(--team-color, #666) 25%, transparent) 100%);
+}
+
+.podium-place.p3 .podium-block {
+  height: 44px;
+  background: linear-gradient(to top, var(--team-color, #666) 0%, color-mix(in srgb, var(--team-color, #666) 25%, transparent) 100%);
+}
+
+/* Results list */
+.results-list {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  margin-top: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.result-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 5px;
+  transition: background 0.2s;
+}
+
+.result-row:hover { background: rgba(255,255,255,0.04); }
+
+.result-pos {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  min-width: 22px;
+  color: var(--text-3);
+}
+
+.result-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+  flex: 1;
+}
+
+.result-team {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.72rem;
+  min-width: 80px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.result-time {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.72rem;
+  color: var(--text-3);
+  min-width: 65px;
+  text-align: right;
+}
+
+/* === DRIVER STANDINGS === */
+.standings-table {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.standing-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px;
+  border-radius: 6px;
+  transition: filter 0.2s;
+}
+
+.standing-row:hover { filter: brightness(1.2); }
+
+.standing-row.leader .s-pos { color: var(--red); }
+
+.s-pos {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  min-width: 26px;
+  color: var(--text-3);
+}
+
+.s-info { flex: 1; }
+
+.s-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.98rem;
+  letter-spacing: 0.4px;
+  color: #ffffff;
+}
+
+.s-team {
+  font-size: 0.7rem;
+  font-family: 'Inter', sans-serif;
+  margin-top: 2px;
+}
+
+.s-bar-track {
+  height: 2px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 1px;
+  margin-top: 5px;
+  overflow: hidden;
+}
+
+.s-bar-fill {
+  height: 100%;
+  border-radius: 1px;
+}
+
+.s-right {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.s-pts {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.s-pts-label {
+  font-size: 0.6rem;
+  color: var(--text-3);
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 1px;
+}
+
+/* === CONSTRUCTOR STANDINGS === */
+.constructor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.constructor-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.constructor-row:hover { background: rgba(255,255,255,0.06); }
+
+.constructor-info { flex: 1; }
+
+.constructor-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+}
+
+.constructor-bar-track {
+  height: 3px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  margin-top: 7px;
+  overflow: hidden;
+}
+
+.constructor-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+}
+
+/* === SCHEDULE === */
+#schedule {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.schedule-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.schedule-row:hover { background: rgba(255,255,255,0.06); }
+
+.schedule-row.past { opacity: 0.38; }
+
+.schedule-row.next {
+  background: rgba(232,0,45,0.08);
+  border-color: rgba(232,0,45,0.35);
+  border-left: 3px solid var(--red);
+}
+
+.schedule-round {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.78rem;
+  color: var(--text-3);
+  min-width: 30px;
+}
+
+.schedule-info { flex: 1; }
+
+.schedule-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  color: #ffffff;
+}
+
+.schedule-circuit {
+  font-size: 0.7rem;
+  color: var(--text-3);
+  font-family: 'Inter', sans-serif;
+  margin-top: 2px;
+}
+
+.schedule-date {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  color: var(--text-2);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.schedule-sprint {
+  display: inline-block;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.55rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #FF8000;
+  background: rgba(255,128,0,0.12);
+  border: 1px solid rgba(255,128,0,0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* === NO DATA === */
+.no-data {
+  color: var(--text-3);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 48px 0;
+  border: 1px dashed rgba(255,255,255,0.08);
+  border-radius: 8px;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 600px) {
+  .next-race-name { font-size: 1.6rem; }
+  .cd-num         { font-size: 2.2rem; }
+  .cd-block       { min-width: 40px; }
+  .podium-driver  { font-size: 0.82rem; }
+  .podium-team,
+  .podium-time    { font-size: 0.62rem; }
+  .result-team    { display: none; }
+  .s-team         { display: none; }
+  .schedule-circuit { display: none; }
+  .next-race-card { padding: 24px 18px; }
+}
