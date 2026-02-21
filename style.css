@@ -574,16 +574,321 @@ section h2 {
   border-radius: 8px;
 }
 
+/* === STATS BAR === */
+.skeleton-stats {
+  height: 64px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 1200px 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+
+#stats-bar {
+  margin-bottom: -24px;
+}
+
+.stats-filler-note {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.72rem;
+  color: rgba(232,0,45,0.7);
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 14px 20px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 8px;
+  flex-wrap: wrap;
+  gap: 0;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  padding: 0 20px;
+}
+
+.stat-item:first-child { padding-left: 0; }
+
+.stat-divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+
+.stat-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.58rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.stat-value {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-top: 2px;
+}
+
+.stat-pts {
+  font-size: 0.75rem;
+  color: var(--text-2);
+  font-weight: 400;
+}
+
+/* === NEXT RACE SESSION SCHEDULE === */
+.next-race-body {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.session-list {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-left: 1px solid rgba(255,255,255,0.08);
+  padding-left: 24px;
+}
+
+.session-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.session-row:last-child { border-bottom: none; }
+
+.session-row.session-race .session-name { color: var(--red); }
+
+.session-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  min-width: 72px;
+}
+
+.session-datetime {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.65);
+}
+
+/* === TABS === */
+.tab-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  padding: 0 16px;
+}
+
+.tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  padding: 12px 16px;
+  cursor: pointer;
+  margin-bottom: -1px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.tab:hover { color: rgba(255,255,255,0.7); }
+
+.tab.active {
+  color: #ffffff;
+  border-bottom-color: var(--red);
+}
+
+.tab-content-area {
+  min-height: 80px;
+}
+
+.tab-no-data {
+  padding: 32px 0 !important;
+}
+
+/* === QUALIFYING === */
+.quali-table {
+  padding: 8px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.quali-times {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.qt {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+  min-width: 66px;
+  text-align: right;
+}
+
+.qt.q3 { color: rgba(255,255,255,0.65); }
+.qt.pole { color: #c084fc; font-weight: 600; }
+
+/* === PIT STOPS === */
+.pitstop-table {
+  padding: 8px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pitstop-header {
+  display: flex;
+  gap: 10px;
+  padding: 4px 8px 8px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 4px;
+}
+
+.pitstop-header span:first-child { flex: 1; }
+
+.pitstop-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 5px;
+  transition: background 0.2s;
+}
+
+.pitstop-row:hover { background: rgba(255,255,255,0.04); }
+
+.pitstop-row.fastest-stop {
+  background: rgba(192,0,255,0.06);
+  border-radius: 5px;
+}
+
+.pitstop-lap, .pitstop-stop {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.72rem;
+  color: var(--text-3);
+  min-width: 48px;
+  text-align: right;
+}
+
+.pitstop-duration {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-2);
+  min-width: 60px;
+  text-align: right;
+}
+
+.pitstop-duration.best { color: #c084fc; }
+
+/* === FORM GUIDE === */
+.form-dots {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.form-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  cursor: default;
+}
+
+.form-dot.win  { background: #FFD700; }
+.form-dot.pts  { background: #34d399; }
+.form-dot.none { background: rgba(255,255,255,0.14); }
+.form-dot.dnf  { background: #e8002d; }
+
+/* === DRIVER STANDINGS (UPDATED) === */
+.s-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.98rem;
+  letter-spacing: 0.4px;
+  color: #ffffff;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.s-name:hover { color: rgba(232,0,45,0.9); }
+
+.s-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.s-gap {
+  font-size: 0.65rem;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-3);
+}
+
+/* === FASTEST LAP === */
+.fl-time {
+  color: #c084fc !important;
+}
+
+.fl-badge {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.55rem;
+  letter-spacing: 1px;
+  color: #c084fc;
+  border: 1px solid rgba(192,132,252,0.4);
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
 /* === RESPONSIVE === */
 @media (max-width: 600px) {
-  .next-race-name { font-size: 1.6rem; }
-  .cd-num         { font-size: 2.2rem; }
-  .cd-block       { min-width: 40px; }
-  .podium-driver  { font-size: 0.82rem; }
+  .next-race-name    { font-size: 1.6rem; }
+  .cd-num            { font-size: 2.2rem; }
+  .cd-block          { min-width: 40px; }
+  .podium-driver     { font-size: 0.82rem; }
   .podium-team,
-  .podium-time    { font-size: 0.62rem; }
-  .result-team    { display: none; }
-  .s-team         { display: none; }
-  .schedule-circuit { display: none; }
-  .next-race-card { padding: 24px 18px; }
+  .podium-time       { font-size: 0.62rem; }
+  .result-team       { display: none; }
+  .s-team            { display: none; }
+  .schedule-circuit  { display: none; }
+  .next-race-card    { padding: 24px 18px; }
+  .next-race-body    { flex-direction: column; gap: 20px; }
+  .session-list      { border-left: none; padding-left: 0; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px; }
+  .quali-times       { display: none; }
+  .stats-bar         { gap: 12px; }
+  .stat-divider      { display: none; }
+  .stat-item         { padding: 0; }
 }

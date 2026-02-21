@@ -1,0 +1,168 @@
+.back-link {
+  display: inline-block;
+  color: rgba(255,255,255,0.5);
+  text-decoration: none;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  transition: color 0.2s;
+}
+
+.back-link:hover { color: #ffffff; }
+
+.driver-header-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.driver-number {
+  font-family: 'Oswald', sans-serif;
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0.25;
+  letter-spacing: -2px;
+}
+
+/* Season stat blocks */
+.driver-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+  margin-bottom: 36px;
+}
+
+.driver-stat-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.driver-stat-value {
+  font-family: 'Oswald', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.driver-stat-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  margin-top: 6px;
+}
+
+/* Results table */
+.results-section-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.race-results-table {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.rr-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.rr-row:hover { background: rgba(255,255,255,0.06); }
+
+.rr-row.win  { border-left: 3px solid #FFD700; }
+.rr-row.dnf  { opacity: 0.5; }
+
+.rr-round {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.3);
+  min-width: 28px;
+}
+
+.rr-race {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.92rem;
+  letter-spacing: 0.3px;
+  flex: 1;
+  color: #ffffff;
+}
+
+.rr-grid {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.35);
+  font-family: 'Inter', sans-serif;
+  min-width: 42px;
+  text-align: center;
+}
+
+.rr-pos {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  min-width: 36px;
+  text-align: right;
+}
+
+.rr-pos.p1    { color: #FFD700; }
+.rr-pos.p2    { color: #C0C0C0; }
+.rr-pos.p3    { color: #CD7F32; }
+.rr-pos.pts   { color: #34d399; }
+.rr-pos.none  { color: rgba(255,255,255,0.35); }
+.rr-pos.dnf   { color: #e8002d; font-size: 0.75rem; }
+
+.rr-pts {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.35);
+  min-width: 36px;
+  text-align: right;
+}
+
+.rr-fl {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.55rem;
+  letter-spacing: 1px;
+  color: #c084fc;
+  border: 1px solid rgba(192,132,252,0.4);
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 36px 20px 80px;
+  animation: fadeIn 0.4s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+  .driver-number { font-size: 2.5rem; }
+  .rr-grid { display: none; }
+}
