@@ -22,7 +22,7 @@ const TEAM_COLORS = {
 
 const NATIONALITY_ISO = {
   'British':       'gb', 'Dutch':        'nl', 'Mexican':      'mx',
-  'Monégasque':    'mc', 'Spanish':      'es', 'Australian':   'au',
+  'Monégasque':    'mc', 'Monegasque':   'mc', 'Spanish':      'es', 'Australian':   'au',
   'Finnish':       'fi', 'German':       'de', 'French':       'fr',
   'Canadian':      'ca', 'Thai':         'th', 'Danish':       'dk',
   'Chinese':       'cn', 'Italian':      'it', 'New Zealander':'nz',
