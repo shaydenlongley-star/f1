@@ -20,6 +20,45 @@ const TEAM_COLORS = {
   toro_rosso:   '#469BFF',
 };
 
+const NATIONALITY_FLAGS = {
+  'British':      '🇬🇧', 'Dutch':        '🇳🇱', 'Mexican':     '🇲🇽',
+  'Monégasque':   '🇲🇨', 'Spanish':      '🇪🇸', 'Australian':  '🇦🇺',
+  'Finnish':      '🇫🇮', 'German':       '🇩🇪', 'French':      '🇫🇷',
+  'Canadian':     '🇨🇦', 'Thai':         '🇹🇭', 'Danish':      '🇩🇰',
+  'Chinese':      '🇨🇳', 'Italian':      '🇮🇹', 'New Zealander':'🇳🇿',
+  'American':     '🇺🇸', 'Brazilian':    '🇧🇷', 'Japanese':    '🇯🇵',
+  'Belgian':      '🇧🇪', 'Austrian':     '🇦🇹', 'Swiss':       '🇨🇭',
+  'Argentine':    '🇦🇷', 'Swedish':      '🇸🇪', 'Czech':       '🇨🇿',
+  'Polish':       '🇵🇱', 'Portuguese':   '🇵🇹', 'Russian':     '🇷🇺',
+};
+
+const CIRCUIT_DATA = {
+  albert_park:   { laps: 58, length: '5.278 km' },
+  bahrain:       { laps: 57, length: '5.412 km' },
+  jeddah:        { laps: 50, length: '6.174 km' },
+  suzuka:        { laps: 53, length: '5.807 km' },
+  shanghai:      { laps: 56, length: '5.451 km' },
+  miami:         { laps: 57, length: '5.412 km' },
+  imola:         { laps: 63, length: '4.909 km' },
+  monaco:        { laps: 78, length: '3.337 km' },
+  villeneuve:    { laps: 70, length: '4.361 km' },
+  catalunya:     { laps: 66, length: '4.657 km' },
+  red_bull_ring: { laps: 71, length: '4.318 km' },
+  silverstone:   { laps: 52, length: '5.891 km' },
+  hungaroring:   { laps: 70, length: '4.381 km' },
+  spa:           { laps: 44, length: '7.004 km' },
+  zandvoort:     { laps: 72, length: '4.259 km' },
+  monza:         { laps: 53, length: '5.793 km' },
+  baku:          { laps: 51, length: '6.003 km' },
+  marina_bay:    { laps: 62, length: '5.063 km' },
+  americas:      { laps: 56, length: '5.513 km' },
+  rodriguez:     { laps: 71, length: '4.304 km' },
+  interlagos:    { laps: 71, length: '4.309 km' },
+  vegas:         { laps: 50, length: '6.120 km' },
+  losail:        { laps: 57, length: '5.380 km' },
+  yas_marina:    { laps: 58, length: '5.281 km' },
+};
+
 const FLAGS = {
   'Australia': '🇦🇺', 'China': '🇨🇳', 'Japan': '🇯🇵',
   'Bahrain': '🇧🇭', 'Saudi Arabia': '🇸🇦', 'USA': '🇺🇸',
@@ -31,8 +70,9 @@ const FLAGS = {
   'UAE': '🇦🇪', 'Qatar': '🇶🇦', 'Abu Dhabi': '🇦🇪',
 };
 
-function getFlag(c) { return FLAGS[c] || '🏁'; }
-function getColor(id) { return TEAM_COLORS[id] || '#888888'; }
+function getFlag(c)         { return FLAGS[c] || '🏁'; }
+function getNatFlag(nat)    { return NATIONALITY_FLAGS[nat] || ''; }
+function getColor(id)       { return TEAM_COLORS[id] || '#888888'; }
 
 function formatDate(date) {
   return date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
@@ -78,11 +118,14 @@ async function init() {
 
   // Render schedule + next race immediately with 2026 data (or 2025 fallback)
   const calendarRaces = races2026.length > 0 ? races2026 : dataRaces;
+  const now = new Date();
+  const nextRace = calendarRaces.find(r => new Date(`${r.date}T${r.time || '12:00:00Z'}`) > now);
+  const circuitId = nextRace?.Circuit?.circuitId;
+
   displayNextRace(calendarRaces);
   displaySchedule(calendarRaces);
 
   // Find last 5 completed rounds in the data year for form
-  const now = new Date();
   const completedRounds = dataRaces
     .filter(r => new Date(`${r.date}T${r.time || '12:00:00Z'}`) < now)
     .map(r => r.round);
@@ -96,10 +139,13 @@ async function init() {
     fetchJSON(`${BASE}${dataYear}/last/qualifying.json`),
     fetchJSON(`${BASE}${dataYear}/last/pitstops.json?limit=100`),
     fetchJSON(`${BASE}${dataYear}/last/sprint.json`),
+    circuitId
+      ? fetchJSON(`${BASE}2025/circuits/${circuitId}/results.json?limit=1`)
+      : Promise.reject('no circuit'),
     ...last5.map(r => fetchJSON(`${BASE}${dataYear}/${r}/results.json`)),
   ]);
 
-  const [driverRes, ctorRes, lastRaceRes, qualRes, pitRes, sprintRes, ...formRoundRes] = results;
+  const [driverRes, ctorRes, lastRaceRes, qualRes, pitRes, sprintRes, circuitInfoRes, ...formRoundRes] = results;
 
   const drivers      = driverRes.status === 'fulfilled' ? driverRes.value.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings || [] : [];
   const constructors = ctorRes.status === 'fulfilled'   ? ctorRes.value.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings || [] : [];
@@ -107,6 +153,7 @@ async function init() {
   const qualifying   = qualRes.status === 'fulfilled'   ? qualRes.value.MRData?.RaceTable?.Races?.[0]?.QualifyingResults || [] : [];
   const pitStops     = pitRes.status === 'fulfilled'    ? pitRes.value.MRData?.RaceTable?.Races?.[0]?.PitStops || [] : [];
   const sprintRace   = sprintRes.status === 'fulfilled' ? sprintRes.value.MRData?.RaceTable?.Races?.[0] || null : null;
+  const circuitRace  = circuitInfoRes.status === 'fulfilled' ? circuitInfoRes.value.MRData?.RaceTable?.Races?.[0] || null : null;
 
   const formRaces = formRoundRes
     .filter(r => r.status === 'fulfilled')
@@ -123,7 +170,12 @@ async function init() {
   }
 
   displayDriverStandings(drivers, formMap, yearLabel);
-  displayConstructorStandings(constructors);
+  displayConstructorStandings(constructors, drivers);
+
+  // Populate circuit info block in the already-rendered next race card
+  if (circuitId) updateCircuitInfo(circuitId, circuitRace);
+
+  initScrollAnimations();
 }
 
 // ─── STATS BAR ────────────────────────────────────────────────────────────────
@@ -189,11 +241,11 @@ function displayNextRace(races) {
 
   // Build session schedule
   const sessions = [];
-  if (nextRace.FirstPractice)  sessions.push({ name: isSprint ? 'FP1' : 'FP1',    ...nextRace.FirstPractice });
+  if (nextRace.FirstPractice)  sessions.push({ name: isSprint ? 'FP1' : 'FP1',         ...nextRace.FirstPractice });
   if (nextRace.SecondPractice) sessions.push({ name: isSprint ? 'Sprint Quali' : 'FP2', ...nextRace.SecondPractice });
-  if (nextRace.ThirdPractice)  sessions.push({ name: 'FP3',    ...nextRace.ThirdPractice });
-  if (nextRace.Sprint)         sessions.push({ name: 'Sprint',  ...nextRace.Sprint });
-  if (nextRace.Qualifying)     sessions.push({ name: 'Qualifying', ...nextRace.Qualifying });
+  if (nextRace.ThirdPractice)  sessions.push({ name: 'FP3',                             ...nextRace.ThirdPractice });
+  if (nextRace.Sprint)         sessions.push({ name: 'Sprint',                          ...nextRace.Sprint });
+  if (nextRace.Qualifying)     sessions.push({ name: 'Qualifying',                      ...nextRace.Qualifying });
   sessions.push({ name: 'Race', date: nextRace.date, time: nextRace.time || '12:00:00Z', isRace: true });
 
   const sessionHTML = sessions.map(s => `
@@ -205,38 +257,86 @@ function displayNextRace(races) {
 
   container.innerHTML = `
     <div class="next-race-card">
-<div class="next-race-label">NEXT RACE &middot; ROUND ${nextRace.round}</div>
+      <div class="next-race-label">NEXT RACE &middot; ROUND ${nextRace.round}</div>
       <div class="next-race-name">${flag} ${nextRace.raceName}</div>
       <div class="next-race-circuit">${nextRace.Circuit.circuitName} &bull; ${nextRace.Circuit.Location.locality}, ${nextRace.Circuit.Location.country}</div>
       <div class="next-race-date">${formatDate(raceDate)}</div>
       <div class="next-race-body">
-        <div class="countdown" id="countdown"></div>
+        <div class="countdown" id="countdown">
+          <div class="cd-block"><span class="cd-num" id="cdv-d">—</span><span class="cd-label">days</span></div>
+          <div class="cd-sep">:</div>
+          <div class="cd-block"><span class="cd-num" id="cdv-h">—</span><span class="cd-label">hrs</span></div>
+          <div class="cd-sep">:</div>
+          <div class="cd-block"><span class="cd-num" id="cdv-m">—</span><span class="cd-label">min</span></div>
+          <div class="cd-sep">:</div>
+          <div class="cd-block"><span class="cd-num" id="cdv-s">—</span><span class="cd-label">sec</span></div>
+        </div>
         ${sessions.length > 1 ? `<div class="session-list">${sessionHTML}</div>` : ''}
       </div>
+      <div id="circuit-info-block"></div>
     </div>
   `;
 
+  function updateCdVal(id, newVal) {
+    const el = document.getElementById(id);
+    if (!el || el.textContent === newVal) return;
+    el.textContent = newVal;
+    el.classList.remove('tick');
+    void el.offsetWidth; // force reflow to restart animation
+    el.classList.add('tick');
+  }
+
   function tick() {
-    const el = document.getElementById('countdown');
-    if (!el) return;
     const diff = raceDate - new Date();
-    if (diff <= 0) { el.textContent = 'Race underway!'; return; }
+    if (diff <= 0) {
+      const el = document.getElementById('countdown');
+      if (el) el.innerHTML = '<span class="cd-live">Race underway!</span>';
+      return;
+    }
     const d = Math.floor(diff / 86400000);
     const h = Math.floor((diff % 86400000) / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
     const s = Math.floor((diff % 60000) / 1000);
-    el.innerHTML = `
-      <div class="cd-block"><span class="cd-num">${d}</span><span class="cd-label">days</span></div>
-      <div class="cd-sep">:</div>
-      <div class="cd-block"><span class="cd-num">${String(h).padStart(2,'0')}</span><span class="cd-label">hrs</span></div>
-      <div class="cd-sep">:</div>
-      <div class="cd-block"><span class="cd-num">${String(m).padStart(2,'0')}</span><span class="cd-label">min</span></div>
-      <div class="cd-sep">:</div>
-      <div class="cd-block"><span class="cd-num">${String(s).padStart(2,'0')}</span><span class="cd-label">sec</span></div>
-    `;
+    updateCdVal('cdv-d', String(d));
+    updateCdVal('cdv-h', String(h).padStart(2, '0'));
+    updateCdVal('cdv-m', String(m).padStart(2, '0'));
+    updateCdVal('cdv-s', String(s).padStart(2, '0'));
   }
   tick();
   setInterval(tick, 1000);
+}
+
+// ─── CIRCUIT INFO ──────────────────────────────────────────────────────────────
+
+function updateCircuitInfo(circuitId, circuitRace) {
+  const block = document.getElementById('circuit-info-block');
+  if (!block) return;
+
+  const data = CIRCUIT_DATA[circuitId] || {};
+  const lastResult = circuitRace?.Results?.[0];
+  const lastWinner = lastResult
+    ? `${lastResult.Driver.givenName[0]}. ${lastResult.Driver.familyName}`
+    : null;
+  const lastTeam = lastResult?.Constructor?.name || null;
+
+  const stats = [];
+  if (data.laps)   stats.push({ label: 'Race Laps',  value: data.laps });
+  if (data.length) stats.push({ label: 'Lap Length',  value: data.length });
+  if (lastWinner)  stats.push({ label: '2025 Winner', value: lastWinner });
+  if (lastTeam)    stats.push({ label: 'Team',        value: lastTeam });
+
+  if (!stats.length) return;
+
+  block.innerHTML = `
+    <div class="circuit-info">
+      ${stats.map(s => `
+        <div class="circuit-stat">
+          <span class="circuit-stat-value">${s.value}</span>
+          <span class="circuit-stat-label">${s.label}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
 }
 
 // ─── LAST RACE ────────────────────────────────────────────────────────────────
@@ -251,8 +351,7 @@ function displayLastRace(race, qualifying, pitStops, sprintRace) {
 
   const flag = getFlag(race.Circuit.Location.country);
 
-  // Find fastest lap holder
-  const flResult = results.find(r => r.FastestLap?.rank === '1');
+  const flResult   = results.find(r => r.FastestLap?.rank === '1');
   const flDriverId = flResult?.Driver?.driverId;
 
   const tabs = [
@@ -329,13 +428,10 @@ function podiumPlace(result, pos, flDriverId) {
 function buildQualifyingTab(qualifying) {
   if (!qualifying.length) return '<p class="no-data tab-no-data">No qualifying data available</p>';
 
-  const poleTime = qualifying[0]?.Q3 || qualifying[0]?.Q2 || qualifying[0]?.Q1 || '';
-
   return `
     <div class="quali-table">
       ${qualifying.map((q, i) => {
         const color = getColor(q.Constructor.constructorId);
-        const bestTime = q.Q3 || q.Q2 || q.Q1 || '—';
         const isPole = i === 0;
         return `
           <div class="result-row">
@@ -357,13 +453,13 @@ function buildQualifyingTab(qualifying) {
 function buildPitStopsTab(pitStops, results) {
   if (!pitStops.length) return '<p class="no-data tab-no-data">No pit stop data available</p>';
 
-  // Build driver name map
-  const nameMap = {};
-  results.forEach(r => { nameMap[r.Driver.driverId] = `${r.Driver.givenName[0]}. ${r.Driver.familyName}`; });
+  const nameMap  = {};
   const colorMap = {};
-  results.forEach(r => { colorMap[r.Driver.driverId] = getColor(r.Constructor.constructorId); });
+  results.forEach(r => {
+    nameMap[r.Driver.driverId]  = `${r.Driver.givenName[0]}. ${r.Driver.familyName}`;
+    colorMap[r.Driver.driverId] = getColor(r.Constructor.constructorId);
+  });
 
-  // Sort by duration, take top 10
   const sorted = [...pitStops]
     .filter(p => parseFloat(p.duration) > 0)
     .sort((a, b) => parseFloat(a.duration) - parseFloat(b.duration))
@@ -459,7 +555,7 @@ function formDotsHTML(driverId, formMap) {
   if (!results.length) return '';
   return `<div class="form-dots">${results.map(r => {
     let cls = 'none', title = `P${r.pos}`;
-    if (r.isDNF)     { cls = 'dnf';    title = 'DNF'; }
+    if (r.isDNF)          { cls = 'dnf'; title = 'DNF'; }
     else if (r.pos === 1) { cls = 'win'; title = 'Win'; }
     else if (r.pos <= 10) { cls = 'pts'; title = `P${r.pos}`; }
     return `<span class="form-dot ${cls}" title="${title}"></span>`;
@@ -482,19 +578,20 @@ function displayDriverStandings(drivers, formMap, yearLabel) {
   container.innerHTML = `
     <div class="standings-table">
       ${drivers.map((d, i) => {
-        const color  = getColor(d.Constructors[0].constructorId);
-        const pct    = Math.round((parseFloat(d.points) / maxPts) * 100);
-        const myPts  = parseFloat(d.points);
-        const gap    = i === 0
+        const color    = getColor(d.Constructors[0].constructorId);
+        const pct      = Math.round((parseFloat(d.points) / maxPts) * 100);
+        const myPts    = parseFloat(d.points);
+        const gap      = i === 0
           ? `+${leaderPts - secondPts} over P2`
           : `−${leaderPts - myPts} pts`;
         const driverId = d.Driver.driverId;
+        const natFlag  = getNatFlag(d.Driver.nationality);
         return `
           <div class="standing-row ${i === 0 ? 'leader' : ''}"
                style="border-left:3px solid ${color}; background:linear-gradient(90deg,${color}18 0%,transparent 100%);">
             <span class="s-pos">${d.position}</span>
             <div class="s-info">
-              <a href="driver.html?id=${driverId}&year=${yearLabel}" class="s-name">${d.Driver.givenName} ${d.Driver.familyName}</a>
+              <a href="driver.html?id=${driverId}&year=${yearLabel}" class="s-name">${natFlag ? `<span class="s-nat-flag">${natFlag}</span>` : ''}${d.Driver.givenName} ${d.Driver.familyName}</a>
               <div class="s-meta-row">
                 <span class="s-team" style="color:${color}">${d.Constructors[0].name}</span>
                 <span class="s-gap">${gap}</span>
@@ -515,23 +612,61 @@ function displayDriverStandings(drivers, formMap, yearLabel) {
 
 // ─── CONSTRUCTOR STANDINGS ────────────────────────────────────────────────────
 
-function displayConstructorStandings(constructors) {
+function displayConstructorStandings(constructors, drivers) {
   const container = document.getElementById('constructor-standings');
   if (!constructors.length) {
     container.innerHTML = '<p class="no-data">Standings will appear after the first race</p>';
     return;
   }
+
+  // Build constructor → drivers map from driver standings
+  const ctorDrivers = {};
+  (drivers || []).forEach(d => {
+    const id = d.Constructors[0].constructorId;
+    if (!ctorDrivers[id]) ctorDrivers[id] = [];
+    ctorDrivers[id].push(d);
+  });
+
   const maxPts = parseFloat(constructors[0].points) || 1;
+
   container.innerHTML = `
     <div class="constructor-list">
-      ${constructors.map((c, i) => {
+      ${constructors.map(c => {
         const color = getColor(c.Constructor.constructorId);
         const pct   = Math.round((parseFloat(c.points) / maxPts) * 100);
+
+        // Teammate H2H
+        const teammates = ctorDrivers[c.Constructor.constructorId] || [];
+        const d1 = teammates[0];
+        const d2 = teammates[1];
+        let h2hHTML = '';
+        if (d1 && d2) {
+          const pts1  = parseFloat(d1.points);
+          const pts2  = parseFloat(d2.points);
+          const total = pts1 + pts2 || 1;
+          const pct1  = Math.round((pts1 / total) * 100);
+          const code1 = d1.Driver.code || d1.Driver.familyName.slice(0, 3).toUpperCase();
+          const code2 = d2.Driver.code || d2.Driver.familyName.slice(0, 3).toUpperCase();
+          h2hHTML = `
+            <div class="h2h-bar">
+              <div class="h2h-drivers">
+                <span>${code1} <span class="h2h-pts">${d1.points}</span></span>
+                <span><span class="h2h-pts">${d2.points}</span> ${code2}</span>
+              </div>
+              <div class="h2h-track">
+                <div class="h2h-left" style="width:${pct1}%;background:${color}"></div>
+                <div class="h2h-right" style="background:${color}"></div>
+              </div>
+            </div>
+          `;
+        }
+
         return `
-          <div class="constructor-row">
+          <div class="constructor-row" style="border-top:2px solid ${color}">
             <span class="s-pos" style="color:${color}">${c.position}</span>
             <div class="constructor-info">
               <div class="constructor-name">${c.Constructor.name}</div>
+              ${h2hHTML}
               <div class="constructor-bar-track">
                 <div class="constructor-bar-fill" style="width:${pct}%;background:${color}"></div>
               </div>
@@ -556,10 +691,23 @@ function displaySchedule(races) {
     return;
   }
   const now = new Date();
-  const nextRace = races.find(r => new Date(`${r.date}T${r.time || '12:00:00Z'}`) > now);
+  const nextRace  = races.find(r => new Date(`${r.date}T${r.time || '12:00:00Z'}`) > now);
   const nextRound = nextRace?.round;
 
-  container.innerHTML = races.map(r => {
+  const completed = races.filter(r => new Date(`${r.date}T${r.time || '12:00:00Z'}`) < now).length;
+  const total     = races.length;
+  const pct       = Math.round((completed / total) * 100);
+
+  const progressHTML = `
+    <div class="season-progress">
+      <div class="season-progress-label">Round ${completed} of ${total} completed</div>
+      <div class="season-progress-track">
+        <div class="season-progress-fill" style="width:${pct}%"></div>
+      </div>
+    </div>
+  `;
+
+  const rowsHTML = races.map(r => {
     const raceDate = new Date(`${r.date}T${r.time || '12:00:00Z'}`);
     const isPast   = raceDate < now;
     const isNext   = r.round === nextRound;
@@ -576,6 +724,31 @@ function displaySchedule(races) {
       </div>
     `;
   }).join('');
+
+  container.innerHTML = progressHTML + rowsHTML;
+}
+
+// ─── SCROLL ANIMATIONS ────────────────────────────────────────────────────────
+
+function initScrollAnimations() {
+  if (!('IntersectionObserver' in window)) return;
+  const sections = document.querySelectorAll('section');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.04 });
+
+  // Small delay so in-viewport sections don't flash invisible
+  setTimeout(() => {
+    sections.forEach(s => {
+      s.classList.add('scroll-fade');
+      observer.observe(s);
+    });
+  }, 80);
 }
 
 init();
