@@ -19,12 +19,14 @@
       </div>
       <div>
         <h1>Formula 1</h1>
-        <p class="subtitle">2026 World Championship</p>
+        <p class="subtitle" id="season-subtitle">2026 World Championship</p>
       </div>
     </div>
   </header>
 
   <main>
+
+    <div id="year-picker-wrap"></div>
 
     <div id="stats-bar"><div class="skeleton-stats"></div></div>
 
@@ -35,7 +37,7 @@
     </section>
 
     <section id="last-race-section">
-      <h2>Last Race Result</h2>
+      <h2 id="last-race-heading">Last Race Result</h2>
       <div id="last-race">
         <div class="skeleton-card"></div>
       </div>
@@ -54,6 +56,11 @@
       </div>
     </section>
 
+    <section id="trend-section">
+      <h2>Championship Points</h2>
+      <div id="trend-container"><div class="skeleton-trend"></div></div>
+    </section>
+
     <section id="constructor-standings-section">
       <h2>Constructors Championship</h2>
       <div id="constructor-standings">
@@ -67,7 +74,7 @@
     </section>
 
     <section id="schedule-section">
-      <h2>2026 Race Calendar</h2>
+      <h2 id="schedule-heading">2026 Race Calendar</h2>
       <div id="schedule">
         <div class="skeleton-card"></div>
         <div class="skeleton-card"></div>
@@ -77,6 +84,7 @@
 
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

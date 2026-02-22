@@ -22,14 +22,15 @@ const TEAM_COLORS = {
 
 const NATIONALITY_ISO = {
   'British':       'gb', 'Dutch':        'nl', 'Mexican':      'mx',
-  'Monégasque':    'mc', 'Monegasque':   'mc', 'Spanish':      'es', 'Australian':   'au',
-  'Finnish':       'fi', 'German':       'de', 'French':       'fr',
-  'Canadian':      'ca', 'Thai':         'th', 'Danish':       'dk',
-  'Chinese':       'cn', 'Italian':      'it', 'New Zealander':'nz',
-  'American':      'us', 'Brazilian':    'br', 'Japanese':     'jp',
-  'Belgian':       'be', 'Austrian':     'at', 'Swiss':        'ch',
-  'Argentine':     'ar', 'Swedish':      'se', 'Czech':        'cz',
-  'Polish':        'pl', 'Portuguese':   'pt', 'Russian':      'ru',
+  'Monégasque':    'mc', 'Monegasque':   'mc', 'Spanish':      'es',
+  'Australian':    'au', 'Finnish':      'fi', 'German':       'de',
+  'French':        'fr', 'Canadian':     'ca', 'Thai':         'th',
+  'Danish':        'dk', 'Chinese':      'cn', 'Italian':      'it',
+  'New Zealander': 'nz', 'American':     'us', 'Brazilian':    'br',
+  'Japanese':      'jp', 'Belgian':      'be', 'Austrian':     'at',
+  'Swiss':         'ch', 'Argentine':    'ar', 'Swedish':      'se',
+  'Czech':         'cz', 'Polish':       'pl', 'Portuguese':   'pt',
+  'Russian':       'ru',
 };
 
 const CIRCUIT_DATA = {
@@ -70,34 +71,159 @@ const COUNTRY_ISO = {
   'UAE': 'ae', 'Qatar': 'qa', 'Abu Dhabi': 'ae',
 };
 
+// ─── GLOBALS ──────────────────────────────────────────────────────────────────
+
+let chartInstance    = null;
+let selectedYear     = null;   // null = 2026 auto-detect; '2018'–'2025' = historical
+let countdownTimer   = null;   // setInterval handle for the countdown
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+
 function flagImg(code, alt) {
   return `<img class="flag-img" src="flags/${code}.png" alt="${alt}" loading="lazy">`;
 }
-function getFlag(country)   { const c = COUNTRY_ISO[country]; return c ? flagImg(c, country) : ''; }
-function getNatFlag(nat)    { const c = NATIONALITY_ISO[nat];  return c ? flagImg(c, nat) : ''; }
-function getColor(id)       { return TEAM_COLORS[id] || '#888888'; }
+function getFlag(country)  { const c = COUNTRY_ISO[country];    return c ? flagImg(c, country) : ''; }
+function getNatFlag(nat)   { const c = NATIONALITY_ISO[nat];    return c ? flagImg(c, nat) : ''; }
+function getColor(id)      { return TEAM_COLORS[id] || '#888888'; }
 
 function formatDate(date) {
   return date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 }
-
 function formatSessionTime(date, time) {
   if (!date || !time) return '—';
   return new Date(`${date}T${time}`).toLocaleString('en-GB', {
     weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
   });
 }
-
 async function fetchJSON(url) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
 
+// ─── YEAR PICKER ──────────────────────────────────────────────────────────────
+
+function renderYearPicker() {
+  const wrap = document.getElementById('year-picker-wrap');
+  if (!wrap) return;
+  const years = ['2026','2025','2024','2023','2022','2021','2020','2019','2018'];
+  wrap.innerHTML = `
+    <div class="year-picker">
+      ${years.map(y => {
+        const isActive = selectedYear === null ? y === '2026' : y === selectedYear;
+        return `<button class="year-pill${isActive ? ' active' : ''}" data-year="${y}">${y}</button>`;
+      }).join('')}
+    </div>
+  `;
+  wrap.querySelectorAll('.year-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const y = btn.dataset.year;
+      selectedYear = (y === '2026') ? null : y;
+      renderYearPicker();
+      resetUI();
+      init(selectedYear);
+    });
+  });
+}
+
+// ─── RESET UI (for year switching) ────────────────────────────────────────────
+
+function resetUI() {
+  if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+  if (chartInstance)  { chartInstance.destroy(); chartInstance = null; }
+
+  // Remove scroll-fade classes so initScrollAnimations() re-applies them
+  document.querySelectorAll('section').forEach(s => s.classList.remove('scroll-fade', 'visible'));
+
+  document.getElementById('stats-bar').innerHTML         = '<div class="skeleton-stats"></div>';
+  document.getElementById('next-race').innerHTML         = '<div class="skeleton-hero"></div>';
+  document.getElementById('last-race').innerHTML         = '<div class="skeleton-card"></div>';
+  document.getElementById('driver-standings').innerHTML  = `
+    <div class="skeleton-table">
+      <div class="skeleton-row skeleton-header"></div>
+      <div class="skeleton-row"></div><div class="skeleton-row"></div>
+      <div class="skeleton-row"></div><div class="skeleton-row"></div>
+    </div>`;
+  document.getElementById('constructor-standings').innerHTML = `
+    <div class="skeleton-table">
+      <div class="skeleton-row skeleton-header"></div>
+      <div class="skeleton-row"></div><div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+    </div>`;
+  document.getElementById('schedule').innerHTML          = `
+    <div class="skeleton-card"></div>
+    <div class="skeleton-card"></div>
+    <div class="skeleton-card"></div>`;
+  document.getElementById('trend-container').innerHTML   = '<div class="skeleton-trend"></div>';
+
+  const displayYear = selectedYear || '2026';
+  const schedHeading = document.getElementById('schedule-heading');
+  if (schedHeading) schedHeading.textContent = `${displayYear} Race Calendar`;
+  const subtitle = document.getElementById('season-subtitle');
+  if (subtitle) subtitle.textContent = `${displayYear} World Championship`;
+}
+
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 
-async function init() {
-  // Phase 1: check what year has data and load 2026 schedule
+async function init(forceYear = null) {
+
+  // ── HISTORICAL YEAR PATH ──────────────────────────────────────────────────
+  if (forceYear) {
+    const raw = await fetchJSON(`${BASE}${forceYear}.json?limit=30`).catch(() => null);
+    const races = raw?.MRData?.RaceTable?.Races || [];
+
+    displaySchedule(races);
+
+    const now = new Date();
+    const completedRounds = races
+      .filter(r => new Date(`${r.date}T${r.time || '12:00:00Z'}`) < now)
+      .map(r => r.round);
+    const last5 = completedRounds.slice(-5);
+
+    const results = await Promise.allSettled([
+      fetchJSON(`${BASE}${forceYear}/driverStandings.json`),
+      fetchJSON(`${BASE}${forceYear}/constructorStandings.json`),
+      fetchJSON(`${BASE}${forceYear}/last/results.json`),
+      fetchJSON(`${BASE}${forceYear}/last/qualifying.json`),
+      fetchJSON(`${BASE}${forceYear}/last/pitstops.json?limit=100`),
+      fetchJSON(`${BASE}${forceYear}/last/sprint.json`),
+      ...last5.map(r => fetchJSON(`${BASE}${forceYear}/${r}/results.json`)),
+    ]);
+
+    const [driverRes, ctorRes, lastRaceRes, qualRes, pitRes, sprintRes, ...formRoundRes] = results;
+
+    const drivers      = driverRes.status === 'fulfilled'   ? driverRes.value.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings || [] : [];
+    const constructors = ctorRes.status === 'fulfilled'     ? ctorRes.value.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings || [] : [];
+    const lastRace     = lastRaceRes.status === 'fulfilled' ? lastRaceRes.value.MRData?.RaceTable?.Races?.[0] || null : null;
+    const qualifying   = qualRes.status === 'fulfilled'     ? qualRes.value.MRData?.RaceTable?.Races?.[0]?.QualifyingResults || [] : [];
+    const pitStops     = pitRes.status === 'fulfilled'      ? pitRes.value.MRData?.RaceTable?.Races?.[0]?.PitStops || [] : [];
+    const sprintRace   = sprintRes.status === 'fulfilled'   ? sprintRes.value.MRData?.RaceTable?.Races?.[0] || null : null;
+    const formRaces    = formRoundRes.filter(r => r.status === 'fulfilled').map(r => r.value.MRData?.RaceTable?.Races?.[0]).filter(Boolean);
+    const formMap      = buildFormMap(formRaces);
+
+    displayStatsBar(drivers, races, forceYear, true);
+    displaySeasonComplete(drivers, constructors, forceYear);
+
+    const lastRaceHeading = document.getElementById('last-race-heading');
+    if (lastRaceHeading) lastRaceHeading.textContent = 'Final Race Result';
+
+    if (lastRace) displayLastRace(lastRace, qualifying, pitStops, sprintRace);
+    else document.getElementById('last-race').innerHTML = '<p class="no-data">No race results available</p>';
+
+    displayDriverStandings(drivers, formMap, forceYear);
+    displayConstructorStandings(constructors, drivers);
+    fetchAndDisplayTrend(forceYear);
+    initScrollAnimations();
+    return;
+  }
+
+  // ── LIVE / AUTO-DETECT PATH ───────────────────────────────────────────────
+
+  // Restore last-race heading if coming back from a historical year
+  const lastRaceHeading = document.getElementById('last-race-heading');
+  if (lastRaceHeading) lastRaceHeading.textContent = 'Last Race Result';
+
+  // Phase 1: check if 2026 has data and fetch schedule
   const [rawSchedule, raw2026Standings] = await Promise.allSettled([
     fetchJSON(`${BASE}current.json?limit=30`),
     fetchJSON(`${BASE}current/driverStandings.json`),
@@ -112,14 +238,13 @@ async function init() {
   const dataYear  = has2026Data ? 'current' : '2025';
   const yearLabel = has2026Data ? '2026' : '2025';
 
-  // Phase 2: get the right schedule for form/standings year
+  // Phase 2: get schedule for form/standings year
   let dataRaces = races2026;
   if (!has2026Data) {
     const raw2025 = await fetchJSON(`${BASE}2025.json?limit=30`).catch(() => null);
     dataRaces = raw2025?.MRData?.RaceTable?.Races || [];
   }
 
-  // Render schedule + next race immediately with 2026 data (or 2025 fallback)
   const calendarRaces = races2026.length > 0 ? races2026 : dataRaces;
   const now = new Date();
   const nextRace = calendarRaces.find(r => new Date(`${r.date}T${r.time || '12:00:00Z'}`) > now);
@@ -128,13 +253,12 @@ async function init() {
   displayNextRace(calendarRaces);
   displaySchedule(calendarRaces);
 
-  // Find last 5 completed rounds in the data year for form
   const completedRounds = dataRaces
     .filter(r => new Date(`${r.date}T${r.time || '12:00:00Z'}`) < now)
     .map(r => r.round);
   const last5 = completedRounds.slice(-5);
 
-  // Phase 3: parallel fetch of all results data
+  // Phase 3: parallel fetch
   const results = await Promise.allSettled([
     fetchJSON(`${BASE}${dataYear}/driverStandings.json`),
     fetchJSON(`${BASE}${dataYear}/constructorStandings.json`),
@@ -150,12 +274,12 @@ async function init() {
 
   const [driverRes, ctorRes, lastRaceRes, qualRes, pitRes, sprintRes, circuitInfoRes, ...formRoundRes] = results;
 
-  const drivers      = driverRes.status === 'fulfilled' ? driverRes.value.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings || [] : [];
-  const constructors = ctorRes.status === 'fulfilled'   ? ctorRes.value.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings || [] : [];
+  const drivers      = driverRes.status === 'fulfilled'   ? driverRes.value.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings || [] : [];
+  const constructors = ctorRes.status === 'fulfilled'     ? ctorRes.value.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings || [] : [];
   const lastRace     = lastRaceRes.status === 'fulfilled' ? lastRaceRes.value.MRData?.RaceTable?.Races?.[0] || null : null;
-  const qualifying   = qualRes.status === 'fulfilled'   ? qualRes.value.MRData?.RaceTable?.Races?.[0]?.QualifyingResults || [] : [];
-  const pitStops     = pitRes.status === 'fulfilled'    ? pitRes.value.MRData?.RaceTable?.Races?.[0]?.PitStops || [] : [];
-  const sprintRace   = sprintRes.status === 'fulfilled' ? sprintRes.value.MRData?.RaceTable?.Races?.[0] || null : null;
+  const qualifying   = qualRes.status === 'fulfilled'     ? qualRes.value.MRData?.RaceTable?.Races?.[0]?.QualifyingResults || [] : [];
+  const pitStops     = pitRes.status === 'fulfilled'      ? pitRes.value.MRData?.RaceTable?.Races?.[0]?.PitStops || [] : [];
+  const sprintRace   = sprintRes.status === 'fulfilled'   ? sprintRes.value.MRData?.RaceTable?.Races?.[0] || null : null;
   const circuitRace  = circuitInfoRes.status === 'fulfilled' ? circuitInfoRes.value.MRData?.RaceTable?.Races?.[0] || null : null;
 
   const formRaces = formRoundRes
@@ -166,18 +290,15 @@ async function init() {
 
   displayStatsBar(drivers, dataRaces, yearLabel, has2026Data);
 
-  if (lastRace) {
-    displayLastRace(lastRace, qualifying, pitStops, sprintRace);
-  } else {
-    document.getElementById('last-race').innerHTML = '<p class="no-data">No race results available yet</p>';
-  }
+  if (lastRace) displayLastRace(lastRace, qualifying, pitStops, sprintRace);
+  else document.getElementById('last-race').innerHTML = '<p class="no-data">No race results available yet</p>';
 
   displayDriverStandings(drivers, formMap, yearLabel);
   displayConstructorStandings(constructors, drivers);
 
-  // Populate circuit info block in the already-rendered next race card
   if (circuitId) updateCircuitInfo(circuitId, circuitRace);
 
+  fetchAndDisplayTrend(dataYear);
   initScrollAnimations();
 }
 
@@ -189,11 +310,12 @@ function displayStatsBar(drivers, races, yearLabel, isLive) {
 
   const now = new Date();
   const completed = races.filter(r => new Date(`${r.date}T${r.time || '12:00:00Z'}`) < now).length;
-  const total = races.length;
+  const total  = races.length;
   const leader = drivers[0];
   const second = drivers[1];
 
-  const fillerNote = !isLive ? `<div class="stats-filler-note">Showing ${yearLabel} season data · 2026 season begins soon</div>` : '';
+  const fillerNote = !isLive
+    ? `<div class="stats-filler-note">Showing ${yearLabel} season data · 2026 season begins soon</div>` : '';
 
   container.innerHTML = `
     ${fillerNote}
@@ -239,16 +361,15 @@ function displayNextRace(races) {
   }
 
   const raceDate = new Date(`${nextRace.date}T${nextRace.time || '12:00:00Z'}`);
-  const flag = getFlag(nextRace.Circuit.Location.country);
+  const flag     = getFlag(nextRace.Circuit.Location.country);
   const isSprint = !!nextRace.Sprint;
 
-  // Build session schedule
   const sessions = [];
-  if (nextRace.FirstPractice)  sessions.push({ name: isSprint ? 'FP1' : 'FP1',         ...nextRace.FirstPractice });
-  if (nextRace.SecondPractice) sessions.push({ name: isSprint ? 'Sprint Quali' : 'FP2', ...nextRace.SecondPractice });
-  if (nextRace.ThirdPractice)  sessions.push({ name: 'FP3',                             ...nextRace.ThirdPractice });
-  if (nextRace.Sprint)         sessions.push({ name: 'Sprint',                          ...nextRace.Sprint });
-  if (nextRace.Qualifying)     sessions.push({ name: 'Qualifying',                      ...nextRace.Qualifying });
+  if (nextRace.FirstPractice)  sessions.push({ name: isSprint ? 'FP1' : 'FP1',           ...nextRace.FirstPractice });
+  if (nextRace.SecondPractice) sessions.push({ name: isSprint ? 'Sprint Quali' : 'FP2',   ...nextRace.SecondPractice });
+  if (nextRace.ThirdPractice)  sessions.push({ name: 'FP3',                               ...nextRace.ThirdPractice });
+  if (nextRace.Sprint)         sessions.push({ name: 'Sprint',                            ...nextRace.Sprint });
+  if (nextRace.Qualifying)     sessions.push({ name: 'Qualifying',                        ...nextRace.Qualifying });
   sessions.push({ name: 'Race', date: nextRace.date, time: nextRace.time || '12:00:00Z', isRace: true });
 
   const sessionHTML = sessions.map(s => `
@@ -261,7 +382,7 @@ function displayNextRace(races) {
   container.innerHTML = `
     <div class="next-race-card">
       <div class="next-race-label">NEXT RACE &middot; ROUND ${nextRace.round}</div>
-      <div class="next-race-name">${flag} ${nextRace.raceName}</div>
+      <div class="next-race-name">${flag}${nextRace.raceName}</div>
       <div class="next-race-circuit">${nextRace.Circuit.circuitName} &bull; ${nextRace.Circuit.Location.locality}, ${nextRace.Circuit.Location.country}</div>
       <div class="next-race-date">${formatDate(raceDate)}</div>
       <div class="next-race-body">
@@ -285,7 +406,7 @@ function displayNextRace(races) {
     if (!el || el.textContent === newVal) return;
     el.textContent = newVal;
     el.classList.remove('tick');
-    void el.offsetWidth; // force reflow to restart animation
+    void el.offsetWidth;
     el.classList.add('tick');
   }
 
@@ -306,7 +427,33 @@ function displayNextRace(races) {
     updateCdVal('cdv-s', String(s).padStart(2, '0'));
   }
   tick();
-  setInterval(tick, 1000);
+  countdownTimer = setInterval(tick, 1000);
+}
+
+// ─── SEASON COMPLETE (historical year champion card) ──────────────────────────
+
+function displaySeasonComplete(drivers, constructors, year) {
+  const container = document.getElementById('next-race');
+  const champion  = drivers[0];
+  const ctorChamp = constructors[0];
+
+  if (!champion) {
+    container.innerHTML = `<div class="champion-card"><div class="champion-label">${year} Season Complete</div></div>`;
+    return;
+  }
+
+  const color   = getColor(champion.Constructors[0].constructorId);
+  const natFlag = getNatFlag(champion.Driver.nationality);
+
+  container.innerHTML = `
+    <div class="champion-card" style="--champ-color:${color}">
+      <div class="champion-label">${year} WORLD CHAMPION</div>
+      <div class="champion-name">${natFlag}${champion.Driver.givenName} ${champion.Driver.familyName}</div>
+      <div class="champion-team" style="color:${color}">${champion.Constructors[0].name} &bull; ${champion.wins} wins</div>
+      <div class="champion-pts">${champion.points} <span class="champion-pts-label">pts</span></div>
+      ${ctorChamp ? `<div class="champion-ctor">Constructors: ${ctorChamp.Constructor.name} &bull; ${ctorChamp.points} pts</div>` : ''}
+    </div>
+  `;
 }
 
 // ─── CIRCUIT INFO ──────────────────────────────────────────────────────────────
@@ -314,22 +461,16 @@ function displayNextRace(races) {
 function updateCircuitInfo(circuitId, circuitRace) {
   const block = document.getElementById('circuit-info-block');
   if (!block) return;
-
-  const data = CIRCUIT_DATA[circuitId] || {};
+  const data       = CIRCUIT_DATA[circuitId] || {};
   const lastResult = circuitRace?.Results?.[0];
-  const lastWinner = lastResult
-    ? `${lastResult.Driver.givenName[0]}. ${lastResult.Driver.familyName}`
-    : null;
-  const lastTeam = lastResult?.Constructor?.name || null;
-
-  const stats = [];
-  if (data.laps)   stats.push({ label: 'Race Laps',  value: data.laps });
-  if (data.length) stats.push({ label: 'Lap Length',  value: data.length });
-  if (lastWinner)  stats.push({ label: '2025 Winner', value: lastWinner });
-  if (lastTeam)    stats.push({ label: 'Team',        value: lastTeam });
-
+  const lastWinner = lastResult ? `${lastResult.Driver.givenName[0]}. ${lastResult.Driver.familyName}` : null;
+  const lastTeam   = lastResult?.Constructor?.name || null;
+  const stats      = [];
+  if (data.laps)   stats.push({ label: 'Race Laps',   value: data.laps });
+  if (data.length) stats.push({ label: 'Lap Length',   value: data.length });
+  if (lastWinner)  stats.push({ label: '2025 Winner',  value: lastWinner });
+  if (lastTeam)    stats.push({ label: 'Team',          value: lastTeam });
   if (!stats.length) return;
-
   block.innerHTML = `
     <div class="circuit-info">
       ${stats.map(s => `
@@ -346,43 +487,35 @@ function updateCircuitInfo(circuitId, circuitRace) {
 
 function displayLastRace(race, qualifying, pitStops, sprintRace) {
   const container = document.getElementById('last-race');
-  const results = race.Results || [];
+  const results   = race.Results || [];
   if (!results.length) {
     container.innerHTML = '<p class="no-data">No results available</p>';
     return;
   }
-
-  const flag = getFlag(race.Circuit.Location.country);
-
+  const flag       = getFlag(race.Circuit.Location.country);
   const flResult   = results.find(r => r.FastestLap?.rank === '1');
   const flDriverId = flResult?.Driver?.driverId;
-
   const tabs = [
     { label: 'Race',       content: buildRaceTab(results, flDriverId) },
     { label: 'Qualifying', content: buildQualifyingTab(qualifying) },
     { label: 'Pit Stops',  content: buildPitStopsTab(pitStops, results) },
   ];
-  if (sprintRace?.Results?.length) {
-    tabs.push({ label: 'Sprint', content: buildSprintTab(sprintRace) });
-  }
-
+  if (sprintRace?.Results?.length) tabs.push({ label: 'Sprint', content: buildSprintTab(sprintRace) });
   container.innerHTML = `
     <div class="last-race-card">
       <div class="race-header">
-        <div class="race-title">${flag} ${race.raceName}</div>
+        <div class="race-title">${flag}${race.raceName}</div>
         <div class="race-subtitle">${formatDate(new Date(race.date + 'T12:00:00Z'))} &bull; ${race.Circuit.circuitName}</div>
       </div>
       <div id="last-race-tabs"></div>
     </div>
   `;
-
   buildTabs(document.getElementById('last-race-tabs'), tabs);
 }
 
 function buildRaceTab(results, flDriverId) {
   const top3 = results.slice(0, 3);
   const rest  = results.slice(3, 10);
-
   const podiumHTML = `
     <div class="podium">
       ${podiumPlace(top3[1], 2, flDriverId)}
@@ -390,7 +523,6 @@ function buildRaceTab(results, flDriverId) {
       ${podiumPlace(top3[2], 3, flDriverId)}
     </div>
   `;
-
   const listHTML = `
     <div class="results-list">
       ${rest.map(r => {
@@ -402,19 +534,17 @@ function buildRaceTab(results, flDriverId) {
             <span class="result-name">${r.Driver.givenName[0]}. ${r.Driver.familyName}</span>
             <span class="result-team" style="color:${color}">${r.Constructor.name}</span>
             <span class="result-time ${isFl ? 'fl-time' : ''}">${r.Time ? r.Time.time : r.status}${isFl ? ' ⬡' : ''}</span>
-          </div>
-        `;
+          </div>`;
       }).join('')}
     </div>
   `;
-
   return podiumHTML + listHTML;
 }
 
 function podiumPlace(result, pos, flDriverId) {
   if (!result) return `<div class="podium-place p${pos}"><div class="podium-info"></div><div class="podium-block"><span class="podium-pos">${pos}</span></div></div>`;
-  const color = getColor(result.Constructor.constructorId);
-  const isFl  = result.Driver.driverId === flDriverId;
+  const color   = getColor(result.Constructor.constructorId);
+  const isFl    = result.Driver.driverId === flDriverId;
   const timeStr = pos === 1 ? 'Winner' : (result.Time ? '+' + result.Time.time : result.status);
   return `
     <div class="podium-place p${pos}" style="--team-color:${color}">
@@ -424,17 +554,15 @@ function podiumPlace(result, pos, flDriverId) {
         <div class="podium-time">${timeStr}</div>
       </div>
       <div class="podium-block"><span class="podium-pos">${pos}</span></div>
-    </div>
-  `;
+    </div>`;
 }
 
 function buildQualifyingTab(qualifying) {
   if (!qualifying.length) return '<p class="no-data tab-no-data">No qualifying data available</p>';
-
   return `
     <div class="quali-table">
       ${qualifying.map((q, i) => {
-        const color = getColor(q.Constructor.constructorId);
+        const color  = getColor(q.Constructor.constructorId);
         const isPole = i === 0;
         return `
           <div class="result-row">
@@ -446,50 +574,40 @@ function buildQualifyingTab(qualifying) {
               ${q.Q2 ? `<span class="qt q2">${q.Q2}</span>` : ''}
               ${q.Q3 ? `<span class="qt q3 ${isPole ? 'pole' : ''}">${q.Q3}</span>` : ''}
             </span>
-          </div>
-        `;
+          </div>`;
       }).join('')}
-    </div>
-  `;
+    </div>`;
 }
 
 function buildPitStopsTab(pitStops, results) {
   if (!pitStops.length) return '<p class="no-data tab-no-data">No pit stop data available</p>';
-
   const nameMap  = {};
   const colorMap = {};
   results.forEach(r => {
     nameMap[r.Driver.driverId]  = `${r.Driver.givenName[0]}. ${r.Driver.familyName}`;
     colorMap[r.Driver.driverId] = getColor(r.Constructor.constructorId);
   });
-
   const sorted = [...pitStops]
     .filter(p => parseFloat(p.duration) > 0)
     .sort((a, b) => parseFloat(a.duration) - parseFloat(b.duration))
     .slice(0, 10);
-
   return `
     <div class="pitstop-table">
       <div class="pitstop-header">
-        <span>Driver</span>
-        <span>Lap</span>
-        <span>Stop</span>
-        <span>Duration</span>
+        <span>Driver</span><span>Lap</span><span>Stop</span><span>Duration</span>
       </div>
       ${sorted.map((p, i) => {
         const color = colorMap[p.driverId] || '#888';
         const name  = nameMap[p.driverId] || p.driverId;
         return `
           <div class="pitstop-row ${i === 0 ? 'fastest-stop' : ''}">
-            <span class="result-name" style="color: ${i === 0 ? color : '#fff'}">${name}</span>
+            <span class="result-name" style="color:${i === 0 ? color : '#fff'}">${name}</span>
             <span class="pitstop-lap">Lap ${p.lap}</span>
             <span class="pitstop-stop">Stop ${p.stop}</span>
             <span class="pitstop-duration ${i === 0 ? 'best' : ''}">${p.duration}s</span>
-          </div>
-        `;
+          </div>`;
       }).join('')}
-    </div>
-  `;
+    </div>`;
 }
 
 function buildSprintTab(sprintRace) {
@@ -504,22 +622,18 @@ function buildSprintTab(sprintRace) {
             <span class="result-name">${r.Driver.givenName[0]}. ${r.Driver.familyName}</span>
             <span class="result-team" style="color:${color}">${r.Constructor.name}</span>
             <span class="result-time">${r.Time ? r.Time.time : r.status}</span>
-          </div>
-        `;
+          </div>`;
       }).join('')}
-    </div>
-  `;
+    </div>`;
 }
 
 // ─── TAB SYSTEM ───────────────────────────────────────────────────────────────
 
 function buildTabs(container, tabs) {
-  const barEl = document.createElement('div');
+  const barEl     = document.createElement('div');
   barEl.className = 'tab-bar';
-
-  const contentEl = document.createElement('div');
+  const contentEl     = document.createElement('div');
   contentEl.className = 'tab-content-area';
-
   tabs.forEach((tab, i) => {
     const btn = document.createElement('button');
     btn.className = 'tab' + (i === 0 ? ' active' : '');
@@ -531,7 +645,6 @@ function buildTabs(container, tabs) {
     });
     barEl.appendChild(btn);
   });
-
   contentEl.innerHTML = tabs[0].content;
   container.appendChild(barEl);
   container.appendChild(contentEl);
@@ -543,9 +656,9 @@ function buildFormMap(races) {
   const map = {};
   races.forEach(race => {
     (race.Results || []).forEach(r => {
-      const id = r.Driver.driverId;
+      const id  = r.Driver.driverId;
       if (!map[id]) map[id] = [];
-      const pos = parseInt(r.position);
+      const pos   = parseInt(r.position);
       const isDNF = r.status !== 'Finished' && !r.status.includes('Lap');
       map[id].push({ pos, isDNF });
     });
@@ -573,25 +686,21 @@ function displayDriverStandings(drivers, formMap, yearLabel) {
     container.innerHTML = '<p class="no-data">Standings will appear after the first race</p>';
     return;
   }
-
   const leaderPts = parseFloat(drivers[0].points);
   const secondPts = drivers[1] ? parseFloat(drivers[1].points) : leaderPts;
   const maxPts    = leaderPts || 1;
-
   container.innerHTML = `
     <div class="standings-table">
       ${drivers.map((d, i) => {
         const color    = getColor(d.Constructors[0].constructorId);
         const pct      = Math.round((parseFloat(d.points) / maxPts) * 100);
         const myPts    = parseFloat(d.points);
-        const gap      = i === 0
-          ? `+${leaderPts - secondPts} over P2`
-          : `−${leaderPts - myPts} pts`;
+        const gap      = i === 0 ? `+${leaderPts - secondPts} over P2` : `−${leaderPts - myPts} pts`;
         const driverId = d.Driver.driverId;
         const natFlag  = getNatFlag(d.Driver.nationality);
         return `
           <div class="standing-row ${i === 0 ? 'leader' : ''}"
-               style="border-left:3px solid ${color}; background:linear-gradient(90deg,${color}18 0%,transparent 100%);">
+               style="border-left:3px solid ${color};background:linear-gradient(90deg,${color}18 0%,transparent 100%)">
             <span class="s-pos">${d.position}</span>
             <div class="s-info">
               <a href="driver.html?id=${driverId}&year=${yearLabel}" class="s-name">${natFlag}${d.Driver.givenName} ${d.Driver.familyName}</a>
@@ -606,11 +715,9 @@ function displayDriverStandings(drivers, formMap, yearLabel) {
               <span class="s-pts">${d.points}</span>
               <span class="s-pts-label">pts</span>
             </div>
-          </div>
-        `;
+          </div>`;
       }).join('')}
-    </div>
-  `;
+    </div>`;
 }
 
 // ─── CONSTRUCTOR STANDINGS ────────────────────────────────────────────────────
@@ -621,24 +728,18 @@ function displayConstructorStandings(constructors, drivers) {
     container.innerHTML = '<p class="no-data">Standings will appear after the first race</p>';
     return;
   }
-
-  // Build constructor → drivers map from driver standings
   const ctorDrivers = {};
   (drivers || []).forEach(d => {
     const id = d.Constructors[0].constructorId;
     if (!ctorDrivers[id]) ctorDrivers[id] = [];
     ctorDrivers[id].push(d);
   });
-
   const maxPts = parseFloat(constructors[0].points) || 1;
-
   container.innerHTML = `
     <div class="constructor-list">
       ${constructors.map(c => {
-        const color = getColor(c.Constructor.constructorId);
-        const pct   = Math.round((parseFloat(c.points) / maxPts) * 100);
-
-        // Teammate H2H
+        const color     = getColor(c.Constructor.constructorId);
+        const pct       = Math.round((parseFloat(c.points) / maxPts) * 100);
         const teammates = ctorDrivers[c.Constructor.constructorId] || [];
         const d1 = teammates[0];
         const d2 = teammates[1];
@@ -660,10 +761,8 @@ function displayConstructorStandings(constructors, drivers) {
                 <div class="h2h-left" style="width:${pct1}%;background:${color}"></div>
                 <div class="h2h-right" style="background:${color}"></div>
               </div>
-            </div>
-          `;
+            </div>`;
         }
-
         return `
           <div class="constructor-row" style="border-top:2px solid ${color}">
             <span class="s-pos" style="color:${color}">${c.position}</span>
@@ -678,11 +777,9 @@ function displayConstructorStandings(constructors, drivers) {
               <span class="s-pts">${c.points}</span>
               <span class="s-pts-label">pts</span>
             </div>
-          </div>
-        `;
+          </div>`;
       }).join('')}
-    </div>
-  `;
+    </div>`;
 }
 
 // ─── RACE SCHEDULE ────────────────────────────────────────────────────────────
@@ -693,10 +790,9 @@ function displaySchedule(races) {
     container.innerHTML = '<p class="no-data">Schedule not yet available</p>';
     return;
   }
-  const now = new Date();
+  const now       = new Date();
   const nextRace  = races.find(r => new Date(`${r.date}T${r.time || '12:00:00Z'}`) > now);
   const nextRound = nextRace?.round;
-
   const completed = races.filter(r => new Date(`${r.date}T${r.time || '12:00:00Z'}`) < now).length;
   const total     = races.length;
   const pct       = Math.round((completed / total) * 100);
@@ -707,8 +803,7 @@ function displaySchedule(races) {
       <div class="season-progress-track">
         <div class="season-progress-fill" style="width:${pct}%"></div>
       </div>
-    </div>
-  `;
+    </div>`;
 
   const rowsHTML = races.map(r => {
     const raceDate = new Date(`${r.date}T${r.time || '12:00:00Z'}`);
@@ -720,15 +815,139 @@ function displaySchedule(races) {
       <div class="schedule-row ${isPast ? 'past' : ''} ${isNext ? 'next' : ''}">
         <div class="schedule-round">R${r.round}</div>
         <div class="schedule-info">
-          <div class="schedule-name">${flag} ${r.raceName}${isSprint ? '<span class="schedule-sprint">Sprint</span>' : ''}</div>
+          <div class="schedule-name">${flag}${r.raceName}${isSprint ? '<span class="schedule-sprint">Sprint</span>' : ''}</div>
           <div class="schedule-circuit">${r.Circuit.circuitName}</div>
         </div>
         <div class="schedule-date">${formatDate(raceDate)}</div>
-      </div>
-    `;
+      </div>`;
   }).join('');
 
   container.innerHTML = progressHTML + rowsHTML;
+}
+
+// ─── POINTS TREND CHART ───────────────────────────────────────────────────────
+
+async function fetchAndDisplayTrend(apiYear) {
+  const container = document.getElementById('trend-container');
+  try {
+    const data  = await fetchJSON(`${BASE}${apiYear}/results.json?limit=500`);
+    const races = data.MRData?.RaceTable?.Races || [];
+    if (!races.length) {
+      container.innerHTML = '<p class="no-data">No completed races yet this season</p>';
+      return;
+    }
+    displayPointsTrend(races);
+  } catch (e) {
+    container.innerHTML = '<p class="no-data">Could not load trend data</p>';
+    console.error(e);
+  }
+}
+
+function displayPointsTrend(races) {
+  // ── First pass: discover all drivers ──
+  const driverMeta   = {}; // id → { name, color }
+  const driverTotals = {}; // id → [cumulative pts array]
+  races.forEach(race => {
+    (race.Results || []).forEach(r => {
+      const id = r.Driver.driverId;
+      if (!driverMeta[id]) {
+        driverMeta[id]   = {
+          name:  `${r.Driver.familyName}`,
+          color: getColor(r.Constructor.constructorId),
+        };
+        driverTotals[id] = [];
+      }
+    });
+  });
+
+  // ── Second pass: compute cumulative points per round ──
+  const running = {};
+  races.forEach(race => {
+    (race.Results || []).forEach(r => {
+      const id = r.Driver.driverId;
+      running[id] = (running[id] || 0) + parseFloat(r.points || 0);
+    });
+    Object.keys(driverTotals).forEach(id => {
+      driverTotals[id].push(running[id] || 0);
+    });
+  });
+
+  // ── Sort by final points, take top 8 ──
+  const top8 = Object.entries(driverTotals)
+    .map(([id, arr]) => ({ id, arr, final: arr[arr.length - 1] || 0 }))
+    .sort((a, b) => b.final - a.final)
+    .slice(0, 8);
+
+  const labels = races.map(r => `R${r.round}`);
+
+  // ── Destroy old chart, inject fresh canvas ──
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+  const container = document.getElementById('trend-container');
+  container.innerHTML = '<canvas id="trend-chart"></canvas>';
+  const ctx = document.getElementById('trend-chart');
+
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: top8.map(d => ({
+        label:            driverMeta[d.id].name,
+        data:             d.arr,
+        borderColor:      driverMeta[d.id].color,
+        backgroundColor:  driverMeta[d.id].color + '18',
+        pointBackgroundColor: driverMeta[d.id].color,
+        borderWidth:      2,
+        pointRadius:      3,
+        pointHoverRadius: 6,
+        tension:          0.3,
+        fill:             false,
+      })),
+    },
+    options: {
+      responsive:          true,
+      maintainAspectRatio: false,
+      interaction:         { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: {
+            color:    'rgba(255,255,255,0.6)',
+            font:     { family: 'Inter', size: 11 },
+            boxWidth: 12,
+            padding:  16,
+          },
+        },
+        tooltip: {
+          backgroundColor: 'rgba(10,10,15,0.95)',
+          borderColor:     'rgba(255,255,255,0.1)',
+          borderWidth:     1,
+          titleColor:      '#ffffff',
+          bodyColor:       'rgba(255,255,255,0.7)',
+          titleFont:       { family: 'Oswald', size: 13 },
+          bodyFont:        { family: 'Inter',  size: 11 },
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y} pts`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid:  { color: 'rgba(255,255,255,0.05)' },
+          ticks: { color: 'rgba(255,255,255,0.35)', font: { family: 'Inter', size: 10 } },
+        },
+        y: {
+          grid:  { color: 'rgba(255,255,255,0.05)' },
+          ticks: { color: 'rgba(255,255,255,0.35)', font: { family: 'Inter', size: 10 } },
+          title: {
+            display: true,
+            text:    'Championship Points',
+            color:   'rgba(255,255,255,0.25)',
+            font:    { family: 'Inter', size: 10 },
+          },
+        },
+      },
+    },
+  });
 }
 
 // ─── SCROLL ANIMATIONS ────────────────────────────────────────────────────────
@@ -744,14 +963,12 @@ function initScrollAnimations() {
       }
     });
   }, { threshold: 0.04 });
-
-  // Small delay so in-viewport sections don't flash invisible
   setTimeout(() => {
-    sections.forEach(s => {
-      s.classList.add('scroll-fade');
-      observer.observe(s);
-    });
+    sections.forEach(s => { s.classList.add('scroll-fade'); observer.observe(s); });
   }, 80);
 }
 
+// ─── BOOT ─────────────────────────────────────────────────────────────────────
+
+renderYearPicker();
 init();
