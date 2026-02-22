@@ -1,0 +1,321 @@
+.back-link {
+  display: inline-block;
+  color: rgba(255,255,255,0.5);
+  text-decoration: none;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  transition: color 0.2s;
+}
+.back-link:hover { color: #ffffff; }
+
+.race-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.race-header-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.race-round-badge {
+  font-family: 'Oswald', sans-serif;
+  font-size: 3.6rem;
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0.9;
+  letter-spacing: -1px;
+}
+
+/* ── Race stat grid ── */
+.race-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 36px;
+}
+
+.race-stat-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 14px 16px;
+  text-align: center;
+}
+
+.race-stat-value {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.1;
+  word-break: break-word;
+}
+
+.race-stat-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  margin-top: 5px;
+}
+
+/* ── Section title ── */
+.results-section-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+/* ── Podium ── */
+.race-podium {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: end;
+  gap: 6px;
+  margin-bottom: 6px;
+  padding: 0 0 0;
+}
+
+.rp-place {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.rp-info { padding: 0 6px 10px; }
+
+.rp-driver {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.rp-team {
+  font-size: 0.68rem;
+  font-family: 'Inter', sans-serif;
+  margin-top: 3px;
+}
+
+.rp-time {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.35);
+  font-family: 'Inter', sans-serif;
+  margin-top: 3px;
+}
+
+.rp-block {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px 6px 0 0;
+}
+
+.rp-pos {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.55);
+}
+
+.rp-place.p1 .rp-block {
+  height: 88px;
+  background: linear-gradient(to top, var(--team-color, #666) 0%, color-mix(in srgb, var(--team-color, #666) 25%, transparent) 100%);
+}
+.rp-place.p2 .rp-block {
+  height: 60px;
+  background: linear-gradient(to top, var(--team-color, #666) 0%, color-mix(in srgb, var(--team-color, #666) 25%, transparent) 100%);
+}
+.rp-place.p3 .rp-block {
+  height: 42px;
+  background: linear-gradient(to top, var(--team-color, #666) 0%, color-mix(in srgb, var(--team-color, #666) 25%, transparent) 100%);
+}
+
+/* ── Full results table ── */
+.full-results {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 4px;
+}
+
+.rr-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.rr-row:hover { background: rgba(255,255,255,0.06); }
+.rr-row.win   { border-left: 3px solid #FFD700; }
+.rr-row.dnf   { opacity: 0.5; }
+
+.rr-pos-num {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  min-width: 32px;
+  text-align: center;
+}
+
+.rr-pos-num.p1   { color: #FFD700; }
+.rr-pos-num.p2   { color: #C0C0C0; }
+.rr-pos-num.p3   { color: #CD7F32; }
+.rr-pos-num.pts  { color: #34d399; }
+.rr-pos-num.none { color: rgba(255,255,255,0.35); }
+.rr-pos-num.dnf  { color: #e8002d; font-size: 0.72rem; }
+
+.rr-driver {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.92rem;
+  letter-spacing: 0.3px;
+  flex: 1;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.rr-team {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  min-width: 80px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.rr-grid {
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.3);
+  font-family: 'Inter', sans-serif;
+  min-width: 36px;
+  text-align: center;
+}
+
+.rr-time {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.45);
+  min-width: 80px;
+  text-align: right;
+}
+
+.rr-pts {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.3);
+  min-width: 38px;
+  text-align: right;
+}
+
+.rr-fl {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.52rem;
+  letter-spacing: 1px;
+  color: #c084fc;
+  border: 1px solid rgba(192,132,252,0.4);
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+/* ── Qualifying tab ── */
+.qual-results {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.qual-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.qual-row:hover { background: rgba(255,255,255,0.06); }
+.qual-row.pole  { border-left: 3px solid #c084fc; }
+
+.qual-pos {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-width: 28px;
+  color: rgba(255,255,255,0.35);
+}
+
+.qual-driver {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.92rem;
+  flex: 1;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.qual-team {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  min-width: 80px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.qual-times {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.qt { font-family: 'Inter', sans-serif; font-size: 0.68rem; color: rgba(255,255,255,0.3); min-width: 68px; text-align: right; }
+.qt.q3    { color: rgba(255,255,255,0.65); }
+.qt.pole  { color: #c084fc; font-weight: 600; }
+
+/* ── Main layout ── */
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 36px 20px 80px;
+  animation: fadeIn 0.4s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+  .race-round-badge  { font-size: 2.4rem; }
+  .rr-grid           { display: none; }
+  .rr-team           { display: none; }
+  .qual-times        { display: none; }
+  .qual-team         { display: none; }
+  .race-stat-grid    { grid-template-columns: repeat(2, 1fr); }
+}

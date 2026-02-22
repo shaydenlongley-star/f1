@@ -177,7 +177,7 @@ async function init(forceYear = null) {
     const raw = await fetchJSON(`${BASE}${forceYear}.json?limit=30`).catch(() => null);
     const races = raw?.MRData?.RaceTable?.Races || [];
 
-    displaySchedule(races);
+    displaySchedule(races, forceYear);
 
     const now = new Date();
     const completedRounds = races
@@ -241,7 +241,7 @@ async function init(forceYear = null) {
   const circuitId = nextRace?.Circuit?.circuitId;
 
   displayNextRace(calendarRaces);
-  displaySchedule(calendarRaces);
+  displaySchedule(calendarRaces, '2026');
 
   const completedRounds = dataRaces
     .filter(r => new Date(`${r.date}T${r.time || '12:00:00Z'}`) < now)
@@ -770,7 +770,7 @@ function displayConstructorStandings(constructors, drivers) {
 
 // ─── RACE SCHEDULE ────────────────────────────────────────────────────────────
 
-function displaySchedule(races) {
+function displaySchedule(races, year = '2026') {
   const container = document.getElementById('schedule');
   if (!races.length) {
     container.innerHTML = '<p class="no-data">Schedule not yet available</p>';
@@ -797,15 +797,17 @@ function displaySchedule(races) {
     const isNext   = r.round === nextRound;
     const flag     = getFlag(r.Circuit.Location.country);
     const isSprint = !!r.Sprint;
+    const tag      = isPast ? 'a' : 'div';
+    const href     = isPast ? `href="race.html?round=${r.round}&year=${year}"` : '';
     return `
-      <div class="schedule-row ${isPast ? 'past' : ''} ${isNext ? 'next' : ''}">
+      <${tag} ${href} class="schedule-row ${isPast ? 'past clickable' : ''} ${isNext ? 'next' : ''}">
         <div class="schedule-round">R${r.round}</div>
         <div class="schedule-info">
           <div class="schedule-name">${flag}${r.raceName}${isSprint ? '<span class="schedule-sprint">Sprint</span>' : ''}</div>
           <div class="schedule-circuit">${r.Circuit.circuitName}</div>
         </div>
         <div class="schedule-date">${formatDate(raceDate)}</div>
-      </div>`;
+      </${tag}>`;
   }).join('');
 
   container.innerHTML = progressHTML + rowsHTML;

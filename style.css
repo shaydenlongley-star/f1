@@ -528,6 +528,16 @@ section h2 {
 
 .schedule-row.past { opacity: 0.38; }
 
+a.schedule-row {
+  text-decoration: none;
+  color: inherit;
+}
+
+.schedule-row.clickable:hover {
+  opacity: 0.75;
+  cursor: pointer;
+}
+
 .schedule-row.next {
   background: rgba(232,0,45,0.08);
   border-color: rgba(232,0,45,0.35);
