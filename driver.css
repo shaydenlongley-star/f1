@@ -5,11 +5,17 @@
   font-family: 'Oswald', sans-serif;
   font-size: 0.85rem;
   letter-spacing: 1px;
-  margin-bottom: 12px;
   transition: color 0.2s;
 }
 
 .back-link:hover { color: #ffffff; }
+
+.driver-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
 
 .driver-header-info {
   display: flex;

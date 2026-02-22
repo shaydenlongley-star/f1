@@ -35,7 +35,7 @@ body {
 header {
   background: linear-gradient(135deg, #1e0008 0%, #2d000f 50%, #1a0006 100%);
   border-bottom: 2px solid var(--red);
-  padding: 24px 0;
+  padding: 20px 0;
 }
 
 .header-inner {
@@ -47,14 +47,25 @@ header {
   gap: 20px;
 }
 
-.f1-wordmark {
-  font-family: 'Oswald', sans-serif;
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--red);
-  line-height: 1;
-  filter: drop-shadow(0 0 16px rgba(232, 0, 45, 0.6));
-  letter-spacing: -1px;
+/* F1 Logo badge */
+.f1-logo-wrap {
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 7px 14px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 20px rgba(232, 0, 45, 0.3);
+}
+
+.f1-logo-img {
+  height: 34px;
+  display: block;
+  object-fit: contain;
+}
+
+.f1-logo-small .f1-logo-img {
+  height: 22px;
 }
 
 header h1 {
@@ -140,6 +151,17 @@ section h2 {
   border-radius: 50%;
   background: radial-gradient(circle, rgba(232,0,45,0.08) 0%, transparent 70%);
   pointer-events: none;
+}
+
+.next-race-logo-watermark {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  height: 36px;
+  object-fit: contain;
+  opacity: 0.08;
+  pointer-events: none;
+  mix-blend-mode: screen;
 }
 
 .next-race-label {

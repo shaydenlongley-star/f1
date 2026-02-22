@@ -205,6 +205,7 @@ function displayNextRace(races) {
 
   container.innerHTML = `
     <div class="next-race-card">
+      <img src="f1-abu-dhabi-gp-2017-f1-logo-6614911.jpg" alt="" class="next-race-logo-watermark" aria-hidden="true">
       <div class="next-race-label">NEXT RACE &middot; ROUND ${nextRace.round}</div>
       <div class="next-race-name">${flag} ${nextRace.raceName}</div>
       <div class="next-race-circuit">${nextRace.Circuit.circuitName} &bull; ${nextRace.Circuit.Location.locality}, ${nextRace.Circuit.Location.country}</div>
