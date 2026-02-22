@@ -205,7 +205,7 @@ function displayNextRace(races) {
 
   container.innerHTML = `
     <div class="next-race-card">
-      <img src="images.png" alt="" class="next-race-logo-watermark" aria-hidden="true">
+      <img src="f1-logo.png" alt="" class="next-race-logo-watermark" aria-hidden="true">
       <div class="next-race-label">NEXT RACE &middot; ROUND ${nextRace.round}</div>
       <div class="next-race-name">${flag} ${nextRace.raceName}</div>
       <div class="next-race-circuit">${nextRace.Circuit.circuitName} &bull; ${nextRace.Circuit.Location.locality}, ${nextRace.Circuit.Location.country}</div>
@@ -579,39 +579,4 @@ function displaySchedule(races) {
   }).join('');
 }
 
-// ─── LOGO TRANSPARENCY ───────────────────────────────────────────────────────
-
-async function makeLogoTransparent() {
-  const logos = document.querySelectorAll('.f1-logo-img');
-  if (!logos.length) return;
-
-  const src = logos[0];
-  if (!src.complete || !src.naturalWidth) {
-    await new Promise(resolve => { src.onload = resolve; });
-  }
-
-  const canvas = document.createElement('canvas');
-  canvas.width  = src.naturalWidth;
-  canvas.height = src.naturalHeight;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(src, 0, 0);
-
-  const img  = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const data = img.data;
-
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i], g = data[i + 1], b = data[i + 2];
-    // Remove near-white / light-grey background pixels
-    if (r > 200 && g > 200 && b > 200) {
-      // Soft edge: partially transparent based on how white the pixel is
-      const whiteness = (r + g + b) / (3 * 255);
-      data[i + 3] = Math.round((1 - whiteness) * 255);
-    }
-  }
-
-  ctx.putImageData(img, 0, 0);
-  const dataURL = canvas.toDataURL('image/png');
-  logos.forEach(l => { l.src = dataURL; });
-}
-
-init().then(() => makeLogoTransparent());
+init();
