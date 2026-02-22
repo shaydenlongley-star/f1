@@ -605,14 +605,6 @@ section h2 {
   margin-bottom: -24px;
 }
 
-.stats-filler-note {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.72rem;
-  color: rgba(232,0,45,0.7);
-  letter-spacing: 1px;
-  margin-bottom: 8px;
-  text-align: center;
-}
 
 .stats-bar {
   display: flex;

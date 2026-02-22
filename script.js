@@ -201,7 +201,7 @@ async function init(forceYear = null) {
     const formRaces    = formRoundRes.filter(r => r.status === 'fulfilled').map(r => r.value.MRData?.RaceTable?.Races?.[0]).filter(Boolean);
     const formMap      = buildFormMap(formRaces);
 
-    displayStatsBar(drivers, races, forceYear, true);
+    displayStatsBar(drivers, races, forceYear);
     displaySeasonComplete(drivers, constructors, forceYear);
 
     const lastRaceHeading = document.getElementById('last-race-heading');
@@ -223,29 +223,14 @@ async function init(forceYear = null) {
   const lastRaceHeading = document.getElementById('last-race-heading');
   if (lastRaceHeading) lastRaceHeading.textContent = 'Last Race Result';
 
-  // Phase 1: check if 2026 has data and fetch schedule
-  const [rawSchedule, raw2026Standings] = await Promise.allSettled([
-    fetchJSON(`${BASE}current.json?limit=30`),
-    fetchJSON(`${BASE}current/driverStandings.json`),
-  ]);
+  // Phase 1: fetch 2026 schedule
+  const rawSchedule = await fetchJSON(`${BASE}current.json?limit=30`).catch(() => null);
+  const races2026   = rawSchedule?.MRData?.RaceTable?.Races || [];
 
-  const races2026 = rawSchedule.status === 'fulfilled'
-    ? rawSchedule.value.MRData?.RaceTable?.Races || [] : [];
-
-  const has2026Data = raw2026Standings.status === 'fulfilled' &&
-    (raw2026Standings.value.MRData?.StandingsTable?.StandingsLists || []).length > 0;
-
-  const dataYear  = has2026Data ? 'current' : '2025';
-  const yearLabel = has2026Data ? '2026' : '2025';
-
-  // Phase 2: get schedule for form/standings year
-  let dataRaces = races2026;
-  if (!has2026Data) {
-    const raw2025 = await fetchJSON(`${BASE}2025.json?limit=30`).catch(() => null);
-    dataRaces = raw2025?.MRData?.RaceTable?.Races || [];
-  }
-
-  const calendarRaces = races2026.length > 0 ? races2026 : dataRaces;
+  const dataYear    = 'current';
+  const yearLabel   = '2026';
+  const dataRaces   = races2026;
+  const calendarRaces = races2026;
   const now = new Date();
   const nextRace = calendarRaces.find(r => new Date(`${r.date}T${r.time || '12:00:00Z'}`) > now);
   const circuitId = nextRace?.Circuit?.circuitId;
@@ -288,7 +273,7 @@ async function init(forceYear = null) {
     .filter(Boolean);
   const formMap = buildFormMap(formRaces);
 
-  displayStatsBar(drivers, dataRaces, yearLabel, has2026Data);
+  displayStatsBar(drivers, dataRaces, yearLabel);
 
   if (lastRace) displayLastRace(lastRace, qualifying, pitStops, sprintRace);
   else document.getElementById('last-race').innerHTML = '<p class="no-data">No race results available yet</p>';
@@ -304,7 +289,7 @@ async function init(forceYear = null) {
 
 // ─── STATS BAR ────────────────────────────────────────────────────────────────
 
-function displayStatsBar(drivers, races, yearLabel, isLive) {
+function displayStatsBar(drivers, races, yearLabel) {
   const container = document.getElementById('stats-bar');
   if (!container) return;
 
@@ -314,11 +299,7 @@ function displayStatsBar(drivers, races, yearLabel, isLive) {
   const leader = drivers[0];
   const second = drivers[1];
 
-  const fillerNote = !isLive
-    ? `<div class="stats-filler-note">Showing ${yearLabel} season data · 2026 season begins soon</div>` : '';
-
   container.innerHTML = `
-    ${fillerNote}
     <div class="stats-bar">
       <div class="stat-item">
         <span class="stat-label">Season</span>
