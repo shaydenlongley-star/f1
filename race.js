@@ -31,6 +31,34 @@ const COUNTRY_ISO = {
   'Malaysia': 'my', 'South Africa': 'za', 'Argentina': 'ar', 'Sweden': 'se',
 };
 
+// Maps Ergast circuitId → downloaded image filename (without extension)
+const CIRCUIT_MAP = {
+  albert_park:    'Australia',
+  bahrain:        'Bahrain',
+  jeddah:         'Saudi_Arabia',
+  suzuka:         'Japan',
+  shanghai:       'China',
+  miami:          'Miami',
+  imola:          'Emilia_Romagna',
+  monaco:         'Monaco',
+  villeneuve:     'Canada',
+  catalunya:      'Spain',
+  red_bull_ring:  'Austria',
+  silverstone:    'Great_Britain',
+  spa:            'Belgium',
+  hungaroring:    'Hungary',
+  zandvoort:      'Netherlands',
+  monza:          'Italy',
+  baku:           'Baku',
+  marina_bay:     'Singapore',
+  americas:       'USA',
+  rodriguez:      'Mexico',
+  interlagos:     'Brazil',
+  vegas:          'Las_Vegas',
+  losail:         'Qatar',
+  yas_marina:     'Abu_Dhabi',
+};
+
 const CIRCUIT_DATA = {
   albert_park:   { laps: 58, length: '5.278 km' },
   bahrain:       { laps: 57, length: '5.412 km' },
@@ -143,6 +171,9 @@ async function init() {
     // ── Stat cards ──
     displayRaceStats(race, results, qualifying, circuitData, winnerColor);
 
+    // ── Circuit map ──
+    displayCircuitMap(race.Circuit.circuitId, winnerColor);
+
     // ── Main results ──
     displayResults(race, results, qualifying, pitStops, sprint);
 
@@ -183,6 +214,18 @@ function displayRaceStats(race, results, qualifying, circuitData, color) {
       `).join('')}
     </div>
   `;
+}
+
+// ─── CIRCUIT MAP ──────────────────────────────────────────────────────────────
+
+function displayCircuitMap(circuitId, color) {
+  const imgName = CIRCUIT_MAP[circuitId];
+  if (!imgName) return;
+  const container = document.getElementById('race-results');
+  const wrap = document.createElement('div');
+  wrap.className = 'circuit-map-wrap';
+  wrap.innerHTML = `<img class="circuit-map-img" src="circuits/${imgName}_Circuit.webp" alt="${imgName} circuit layout" style="border-color:${color}40">`;
+  container.before(wrap);
 }
 
 // ─── RESULTS WITH TABS ────────────────────────────────────────────────────────
