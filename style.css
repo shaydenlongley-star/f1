@@ -47,25 +47,22 @@ header {
   gap: 20px;
 }
 
-/* F1 Logo badge */
+/* F1 Logo */
 .f1-logo-wrap {
-  background: #ffffff;
-  border-radius: 6px;
-  padding: 7px 14px;
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  box-shadow: 0 0 20px rgba(232, 0, 45, 0.3);
 }
 
 .f1-logo-img {
-  height: 34px;
+  height: 38px;
   display: block;
   object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(232, 0, 45, 0.55));
 }
 
 .f1-logo-small .f1-logo-img {
-  height: 22px;
+  height: 24px;
 }
 
 header h1 {
@@ -157,11 +154,10 @@ section h2 {
   position: absolute;
   bottom: 24px;
   right: 24px;
-  height: 36px;
+  height: 44px;
   object-fit: contain;
-  opacity: 0.08;
+  opacity: 0.15;
   pointer-events: none;
-  mix-blend-mode: screen;
 }
 
 .next-race-label {

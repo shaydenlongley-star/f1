@@ -140,4 +140,30 @@ function displayResults(races, teamColor) {
   `;
 }
 
-init();
+async function makeLogoTransparent() {
+  const logos = document.querySelectorAll('.f1-logo-img');
+  if (!logos.length) return;
+  const src = logos[0];
+  if (!src.complete || !src.naturalWidth) {
+    await new Promise(resolve => { src.onload = resolve; });
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = src.naturalWidth;
+  canvas.height = src.naturalHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(src, 0, 0);
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = img.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i], g = data[i + 1], b = data[i + 2];
+    if (r > 200 && g > 200 && b > 200) {
+      const whiteness = (r + g + b) / (3 * 255);
+      data[i + 3] = Math.round((1 - whiteness) * 255);
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const dataURL = canvas.toDataURL('image/png');
+  logos.forEach(l => { l.src = dataURL; });
+}
+
+init().then(() => makeLogoTransparent());
