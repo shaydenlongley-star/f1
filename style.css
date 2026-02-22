@@ -974,10 +974,17 @@ section h2 {
   color: rgba(255,255,255,0.3);
 }
 
-/* === NATIONALITY FLAG === */
-.s-nat-flag {
+/* === FLAG IMAGES === */
+.flag-img {
+  display: inline-block;
+  width: 20px;
+  height: 15px;
+  object-fit: cover;
+  border-radius: 2px;
+  vertical-align: middle;
   margin-right: 5px;
-  font-size: 0.9em;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.08);
 }
 
 /* === TEAMMATE H2H BAR === */

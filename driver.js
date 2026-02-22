@@ -9,17 +9,20 @@ const TEAM_COLORS = {
   sauber: '#52E252', kick_sauber: '#52E252', audi: '#C0392B',
 };
 
-const FLAGS = {
-  'Australia': '🇦🇺', 'China': '🇨🇳', 'Japan': '🇯🇵', 'Bahrain': '🇧🇭',
-  'Saudi Arabia': '🇸🇦', 'USA': '🇺🇸', 'United States': '🇺🇸', 'Italy': '🇮🇹',
-  'Monaco': '🇲🇨', 'Canada': '🇨🇦', 'Spain': '🇪🇸', 'Austria': '🇦🇹',
-  'UK': '🇬🇧', 'United Kingdom': '🇬🇧', 'Hungary': '🇭🇺', 'Belgium': '🇧🇪',
-  'Netherlands': '🇳🇱', 'Azerbaijan': '🇦🇿', 'Singapore': '🇸🇬',
-  'Mexico': '🇲🇽', 'Brazil': '🇧🇷', 'UAE': '🇦🇪', 'Qatar': '🇶🇦', 'Abu Dhabi': '🇦🇪',
+const COUNTRY_ISO = {
+  'Australia': 'au', 'China': 'cn', 'Japan': 'jp', 'Bahrain': 'bh',
+  'Saudi Arabia': 'sa', 'USA': 'us', 'United States': 'us', 'Italy': 'it',
+  'Monaco': 'mc', 'Canada': 'ca', 'Spain': 'es', 'Austria': 'at',
+  'UK': 'gb', 'United Kingdom': 'gb', 'Hungary': 'hu', 'Belgium': 'be',
+  'Netherlands': 'nl', 'Azerbaijan': 'az', 'Singapore': 'sg',
+  'Mexico': 'mx', 'Brazil': 'br', 'UAE': 'ae', 'Qatar': 'qa', 'Abu Dhabi': 'ae',
 };
 
 function getColor(id) { return TEAM_COLORS[id] || '#888888'; }
-function getFlag(c) { return FLAGS[c] || '🏁'; }
+function getFlag(country) {
+  const c = COUNTRY_ISO[country];
+  return c ? `<img class="flag-img" src="flags/${c}.png" alt="${country}" loading="lazy">` : '';
+}
 
 async function init() {
   const params = new URLSearchParams(window.location.search);

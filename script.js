@@ -20,16 +20,16 @@ const TEAM_COLORS = {
   toro_rosso:   '#469BFF',
 };
 
-const NATIONALITY_FLAGS = {
-  'British':      '🇬🇧', 'Dutch':        '🇳🇱', 'Mexican':     '🇲🇽',
-  'Monégasque':   '🇲🇨', 'Spanish':      '🇪🇸', 'Australian':  '🇦🇺',
-  'Finnish':      '🇫🇮', 'German':       '🇩🇪', 'French':      '🇫🇷',
-  'Canadian':     '🇨🇦', 'Thai':         '🇹🇭', 'Danish':      '🇩🇰',
-  'Chinese':      '🇨🇳', 'Italian':      '🇮🇹', 'New Zealander':'🇳🇿',
-  'American':     '🇺🇸', 'Brazilian':    '🇧🇷', 'Japanese':    '🇯🇵',
-  'Belgian':      '🇧🇪', 'Austrian':     '🇦🇹', 'Swiss':       '🇨🇭',
-  'Argentine':    '🇦🇷', 'Swedish':      '🇸🇪', 'Czech':       '🇨🇿',
-  'Polish':       '🇵🇱', 'Portuguese':   '🇵🇹', 'Russian':     '🇷🇺',
+const NATIONALITY_ISO = {
+  'British':       'gb', 'Dutch':        'nl', 'Mexican':      'mx',
+  'Monégasque':    'mc', 'Spanish':      'es', 'Australian':   'au',
+  'Finnish':       'fi', 'German':       'de', 'French':       'fr',
+  'Canadian':      'ca', 'Thai':         'th', 'Danish':       'dk',
+  'Chinese':       'cn', 'Italian':      'it', 'New Zealander':'nz',
+  'American':      'us', 'Brazilian':    'br', 'Japanese':     'jp',
+  'Belgian':       'be', 'Austrian':     'at', 'Swiss':        'ch',
+  'Argentine':     'ar', 'Swedish':      'se', 'Czech':        'cz',
+  'Polish':        'pl', 'Portuguese':   'pt', 'Russian':      'ru',
 };
 
 const CIRCUIT_DATA = {
@@ -59,19 +59,22 @@ const CIRCUIT_DATA = {
   yas_marina:    { laps: 58, length: '5.281 km' },
 };
 
-const FLAGS = {
-  'Australia': '🇦🇺', 'China': '🇨🇳', 'Japan': '🇯🇵',
-  'Bahrain': '🇧🇭', 'Saudi Arabia': '🇸🇦', 'USA': '🇺🇸',
-  'United States': '🇺🇸', 'Italy': '🇮🇹', 'Monaco': '🇲🇨',
-  'Canada': '🇨🇦', 'Spain': '🇪🇸', 'Austria': '🇦🇹',
-  'UK': '🇬🇧', 'United Kingdom': '🇬🇧', 'Hungary': '🇭🇺',
-  'Belgium': '🇧🇪', 'Netherlands': '🇳🇱', 'Azerbaijan': '🇦🇿',
-  'Singapore': '🇸🇬', 'Mexico': '🇲🇽', 'Brazil': '🇧🇷',
-  'UAE': '🇦🇪', 'Qatar': '🇶🇦', 'Abu Dhabi': '🇦🇪',
+const COUNTRY_ISO = {
+  'Australia': 'au', 'China': 'cn', 'Japan': 'jp',
+  'Bahrain': 'bh', 'Saudi Arabia': 'sa', 'USA': 'us',
+  'United States': 'us', 'Italy': 'it', 'Monaco': 'mc',
+  'Canada': 'ca', 'Spain': 'es', 'Austria': 'at',
+  'UK': 'gb', 'United Kingdom': 'gb', 'Hungary': 'hu',
+  'Belgium': 'be', 'Netherlands': 'nl', 'Azerbaijan': 'az',
+  'Singapore': 'sg', 'Mexico': 'mx', 'Brazil': 'br',
+  'UAE': 'ae', 'Qatar': 'qa', 'Abu Dhabi': 'ae',
 };
 
-function getFlag(c)         { return FLAGS[c] || '🏁'; }
-function getNatFlag(nat)    { return NATIONALITY_FLAGS[nat] || ''; }
+function flagImg(code, alt) {
+  return `<img class="flag-img" src="flags/${code}.png" alt="${alt}" loading="lazy">`;
+}
+function getFlag(country)   { const c = COUNTRY_ISO[country]; return c ? flagImg(c, country) : ''; }
+function getNatFlag(nat)    { const c = NATIONALITY_ISO[nat];  return c ? flagImg(c, nat) : ''; }
 function getColor(id)       { return TEAM_COLORS[id] || '#888888'; }
 
 function formatDate(date) {
@@ -591,7 +594,7 @@ function displayDriverStandings(drivers, formMap, yearLabel) {
                style="border-left:3px solid ${color}; background:linear-gradient(90deg,${color}18 0%,transparent 100%);">
             <span class="s-pos">${d.position}</span>
             <div class="s-info">
-              <a href="driver.html?id=${driverId}&year=${yearLabel}" class="s-name">${natFlag ? `<span class="s-nat-flag">${natFlag}</span>` : ''}${d.Driver.givenName} ${d.Driver.familyName}</a>
+              <a href="driver.html?id=${driverId}&year=${yearLabel}" class="s-name">${natFlag}${d.Driver.givenName} ${d.Driver.familyName}</a>
               <div class="s-meta-row">
                 <span class="s-team" style="color:${color}">${d.Constructors[0].name}</span>
                 <span class="s-gap">${gap}</span>
