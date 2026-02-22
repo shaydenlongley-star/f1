@@ -16,6 +16,11 @@ const COUNTRY_ISO = {
   'UK': 'gb', 'United Kingdom': 'gb', 'Hungary': 'hu', 'Belgium': 'be',
   'Netherlands': 'nl', 'Azerbaijan': 'az', 'Singapore': 'sg',
   'Mexico': 'mx', 'Brazil': 'br', 'UAE': 'ae', 'Qatar': 'qa', 'Abu Dhabi': 'ae',
+  // Historical seasons
+  'France': 'fr', 'Germany': 'de', 'Russia': 'ru',
+  'Portugal': 'pt', 'Turkey': 'tr', 'Vietnam': 'vn',
+  'Korea': 'kr', 'India': 'in', 'Malaysia': 'my',
+  'South Africa': 'za', 'Argentina': 'ar', 'Sweden': 'se',
 };
 
 function getColor(id) { return TEAM_COLORS[id] || '#888888'; }
